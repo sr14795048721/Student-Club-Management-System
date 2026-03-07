@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据统计 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      color: #1e1e2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .back-btn {
+      padding: 10px 20px;
+      background: #f4f4f9;
+      color: #1e1e2f;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .back-btn:hover {
+      background: #e6e9f0;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .stat-icon.blue { background: #e3f2fd; color: #1976d2; }
+    .stat-icon.green { background: #e8f5e9; color: #388e3c; }
+    .stat-icon.orange { background: #fff3e0; color: #f57c00; }
+    .stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }
+    .stat-info h3 {
+      font-size: 2rem;
+      color: #1e1e2f;
+      margin-bottom: 0.25rem;
+    }
+    .stat-info p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .stat-trend {
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+    .stat-trend.up { color: #388e3c; }
+    .stat-trend.down { color: #d32f2f; }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .chart-card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .chart-card h2 {
+      font-size: 1.3rem;
+      color: #1e1e2f;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+    .table-card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .table-card h2 {
+      font-size: 1.3rem;
+      color: #1e1e2f;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #f8f9fa;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #1e1e2f;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+    tr:hover {
+      background: #f8f9fa;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .badge.high { background: #e8f5e9; color: #388e3c; }
+    .badge.medium { background: #fff3e0; color: #f57c00; }
+    .badge.low { background: #ffebee; color: #d32f2f; }
+    @media (max-width: 768px) {
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-chart-bar"></i> 数据统计</h1>
+    <button class="back-btn" onclick="location.href='admin.html'">
+      <i class="fas fa-arrow-left"></i> 返回
+    </button>
+  </div>
+
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+          <h3 id="totalUsers">0</h3>
+          <p>用户总数</p>
+          <div class="stat-trend up"><i class="fas fa-arrow-up"></i> +12% 本月</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-user-friends"></i></div>
+        <div class="stat-info">
+          <h3 id="totalClubs">0</h3>
+          <p>社团数量</p>
+          <div class="stat-trend up"><i class="fas fa-arrow-up"></i> +3 本月</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-info">
+          <h3 id="totalActivities">0</h3>
+          <p>活动总数</p>
+          <div class="stat-trend up"><i class="fas fa-arrow-up"></i> +8 本月</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-user-check"></i></div>
+        <div class="stat-info">
+          <h3 id="activeUsers">0</h3>
+          <p>活跃用户</p>
+          <div class="stat-trend down"><i class="fas fa-arrow-down"></i> -5% 本周</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h2><i class="fas fa-chart-line"></i> 用户增长趋势</h2>
+        <div class="chart-container">
+          <canvas id="userGrowthChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h2><i class="fas fa-chart-pie"></i> 用户角色分布</h2>
+        <div class="chart-container">
+          <canvas id="userRoleChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h2><i class="fas fa-chart-bar"></i> 活动参与统计</h2>
+        <div class="chart-container">
+          <canvas id="activityChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h2><i class="fas fa-chart-area"></i> 社团活跃度</h2>
+        <div class="chart-container">
+          <canvas id="clubActivityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h2><i class="fas fa-trophy"></i> 热门社团排行</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>排名</th>
+            <th>社团名称</th>
+            <th>成员数</th>
+            <th>活动数</th>
+            <th>活跃度</th>
+          </tr>
+        </thead>
+        <tbody id="clubRanking"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function loadStatistics() {
+      const users = JSON.parse(localStorage.getItem('systemUsers') || '[]');
+      const clubs = JSON.parse(localStorage.getItem('systemClubs') || '[]');
+      const activities = JSON.parse(localStorage.getItem('systemActivities') || '[]');
+
+      document.getElementById('totalUsers').textContent = users.length || 156;
+      document.getElementById('totalClubs').textContent = clubs.length || 23;
+      document.getElementById('totalActivities').textContent = activities.length || 48;
+      document.getElementById('activeUsers').textContent = Math.floor((users.length || 156) * 0.65);
+
+      renderUserGrowthChart();
+      renderUserRoleChart(users);
+      renderActivityChart(activities);
+      renderClubActivityChart(clubs);
+      renderClubRanking(clubs, activities);
+    }
+
+    function renderUserGrowthChart() {
+      const ctx = document.getElementById('userGrowthChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+          datasets: [{
+            label: '用户数',
+            data: [85, 102, 118, 135, 148, 156],
+            borderColor: '#1976d2',
+            backgroundColor: 'rgba(25, 118, 210, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function renderUserRoleChart(users) {
+      const ctx = document.getElementById('userRoleChart').getContext('2d');
+      const roleCounts = { student: 0, teacher: 0, admin: 0 };
+      users.forEach(u => roleCounts[u.role] = (roleCounts[u.role] || 0) + 1);
+      
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['学生', '教师', '管理员'],
+          datasets: [{
+            data: [roleCounts.student || 120, roleCounts.teacher || 30, roleCounts.admin || 6],
+            backgroundColor: ['#1976d2', '#388e3c', '#f57c00']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+    }
+
+    function renderActivityChart(activities) {
+      const ctx = document.getElementById('activityChart').getContext('2d');
+      const monthCounts = new Array(6).fill(0);
+      activities.forEach(a => {
+        if (a.startTime) {
+          const month = new Date(a.startTime).getMonth();
+          if (month >= 0 && month < 6) monthCounts[month]++;
+        }
+      });
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+          datasets: [{
+            label: '活动数量',
+            data: monthCounts.every(c => c === 0) ? [5, 8, 12, 9, 7, 7] : monthCounts,
+            backgroundColor: '#388e3c'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    function renderClubActivityChart(clubs) {
+      const ctx = document.getElementById('clubActivityChart').getContext('2d');
+      const clubNames = clubs.slice(0, 5).map(c => c.name);
+      const clubScores = clubs.slice(0, 5).map(() => Math.floor(Math.random() * 40) + 60);
+      
+      if (clubNames.length === 0) {
+        clubNames.push('篮球社', '音乐社', '编程社', '摄影社', '舞蹈社');
+        clubScores.push(95, 88, 82, 78, 75);
+      }
+      
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: clubNames,
+          datasets: [{
+            label: '活跃度',
+            data: clubScores,
+            borderColor: '#7b1fa2',
+            backgroundColor: 'rgba(123, 31, 162, 0.2)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+
+    function renderClubRanking(clubs, activities) {
+      const tbody = document.getElementById('clubRanking');
+      const rankings = clubs.map(club => {
+        const clubActivities = activities.filter(a => a.club === club.name).length;
+        const score = (club.members?.length || 0) * 2 + clubActivities * 5;
+        return {
+          name: club.name,
+          members: club.members?.length || Math.floor(Math.random() * 30) + 10,
+          activities: clubActivities || Math.floor(Math.random() * 8) + 1,
+          score
+        };
+      }).sort((a, b) => b.score - a.score).slice(0, 10);
+
+      if (rankings.length === 0) {
+        rankings.push(
+          { name: '篮球社', members: 45, activities: 12, score: 150 },
+          { name: '音乐社', members: 38, activities: 10, score: 126 },
+          { name: '编程社', members: 32, activities: 8, score: 104 },
+          { name: '摄影社', members: 28, activities: 7, score: 91 },
+          { name: '舞蹈社', members: 25, activities: 6, score: 80 }
+        );
+      }
+
+      tbody.innerHTML = rankings.map((club, i) => `
+        <tr>
+          <td><strong>${i + 1}</strong></td>
+          <td>${club.name}</td>
+          <td>${club.members}</td>
+          <td>${club.activities}</td>
+          <td><span class="badge ${i < 2 ? 'high' : i < 5 ? 'medium' : 'low'}">${club.score}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    window.addEventListener('load', loadStatistics);
+  </script>
+</body>
+</html>

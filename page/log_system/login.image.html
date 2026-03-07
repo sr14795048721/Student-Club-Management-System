@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>轮播图片描述配置</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #1e1e2f;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h1 i {
+      color: #3a3a5a;
+    }
+    .info-note {
+      background: #e6e9f0;
+      padding: 1rem 1.5rem;
+      border-radius: 20px;
+      margin-bottom: 2rem;
+      color: #2d2d3a;
+      font-size: 0.95rem;
+      border-left: 5px solid #4a4a6a;
+    }
+    .info-note i {
+      margin-right: 8px;
+      color: #4a4a6a;
+    }
+    .slide-item {
+      background: white;
+      border-radius: 24px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+    .slide-item:hover {
+      box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-weight: 500;
+      color: #1e1e2f;
+    }
+    .item-header span {
+      background: #eef0f5;
+      padding: 0.3rem 1rem;
+      border-radius: 30px;
+      font-size: 0.9rem;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #b00;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0 8px;
+      opacity: 0.6;
+      transition: 0.2s;
+    }
+    .delete-btn:hover {
+      opacity: 1;
+      color: #d00;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #2d2d3a;
+      margin-bottom: 5px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #dde0e8;
+      border-radius: 18px;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
+    }
+    .form-group input:focus {
+      border-color: #4a4a6a;
+    }
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .form-row .form-group {
+      flex: 1;
+    }
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 40px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.2s;
+      background: white;
+      border: 1.5px solid #cacfe0;
+    }
+    .btn-primary {
+      background: #1e1e2f;
+      color: white;
+      border: none;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    .btn-primary:hover {
+      background: #2a2a3f;
+      transform: scale(1.02);
+    }
+    .btn-secondary:hover {
+      background: #e6e9f0;
+    }
+    .btn-danger {
+      background: #fde7e7;
+      color: #a00;
+      border-color: #fcc;
+    }
+    .btn-danger:hover {
+      background: #fcc;
+    }
+    .footer-links {
+      margin-top: 3rem;
+      text-align: center;
+    }
+    .footer-links a {
+      color: #4a4a6a;
+      text-decoration: none;
+      font-size: 0.95rem;
+      border-bottom: 1px dashed #a0a0b0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-images"></i> 轮播图片描述配置</h1>
+
+    <div class="info-note">
+      <i class="fas fa-info-circle"></i>
+      图片文件请放置在上级目录的 <strong>image/log.image/</strong> 文件夹内。系统会自动扫描所有图片并轮播。你可以为每张图片添加标题和描述。
+    </div>
+
+    <div class="actions" style="margin-bottom: 2rem;">
+      <label class="btn btn-secondary" style="margin: 0;">
+        <i class="fas fa-upload"></i> 导入图片
+        <input type="file" id="import-images" accept="image/*" multiple style="display:none;">
+      </label>
+      <button class="btn btn-secondary" id="scan-btn"><i class="fas fa-sync"></i> 扫描图片</button>
+    </div>
+
+    <div id="slides-container">
+      <!-- 动态生成的轮播项会放在这里 -->
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" id="add-slide-btn"><i class="fas fa-plus"></i> 添加新图片项</button>
+      <button class="btn btn-primary" id="save-btn"><i class="fas fa-save"></i> 保存配置</button>
+      <button class="btn btn-danger" id="reset-btn"><i class="fas fa-undo-alt"></i> 清空配置</button>
+    </div>
+
+    <div class="footer-links">
+      <a href="../user_system/admin/admin.html"><i class="fas fa-arrow-left"></i> 返回管理后台</a>
+    </div>
+  </div>
+
+  <!-- 引入共享JS -->
+  <script src="carousel_storage.js"></script>
+  <script src="carousel_image.js"></script>
+  <script src="log_image_system.js"></script>
+  <script>
+    (function() {
+      // 当前配置数据
+      let slides = CarouselSystem.loadConfig(); // 从共享模块加载
+
+      const container = document.getElementById('slides-container');
+
+      function renderSlides() {
+        container.innerHTML = '';
+        slides.forEach((slide, index) => {
+          const itemDiv = document.createElement('div');
+          itemDiv.className = 'slide-item';
+          itemDiv.dataset.index = index;
+
+          itemDiv.innerHTML = `
+            <div class="item-header">
+              <span>图片 #${index + 1}</span>
+              <button class="delete-btn" onclick="deleteSlide(${index})"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="form-group">
+              <label>名称 (不含扩展名，系统自动匹配 .png/.jpg/.jpeg 等格式)</label>
+              <input type="text" class="name-input" value="${slide.name || ''}" placeholder="例如 slide1">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>标题</label>
+                <input type="text" class="title-input" value="${slide.title || ''}" placeholder="标题">
+              </div>
+              <div class="form-group">
+                <label>描述</label>
+                <input type="text" class="desc-input" value="${slide.description || ''}" placeholder="描述文字">
+              </div>
+            </div>
+          `;
+          container.appendChild(itemDiv);
+        });
+      }
+
+      function updateSlidesFromDOM() {
+        const items = document.querySelectorAll('.slide-item');
+        const newSlides = [];
+        items.forEach(item => {
+          const name = item.querySelector('.name-input').value.trim();
+          const title = item.querySelector('.title-input').value.trim();
+          const description = item.querySelector('.desc-input').value.trim();
+          if (name) {
+            newSlides.push({ name, title, description });
+          }
+        });
+        if (newSlides.length === 0) {
+          alert('至少需要填写一个有效的名称');
+          return false;
+        }
+        slides = newSlides;
+        return true;
+      }
+
+      // 保存到 localStorage（通过共享模块）
+      function saveToStorage() {
+        if (!updateSlidesFromDOM()) return;
+        CarouselSystem.saveConfig(slides);
+        alert('配置已保存！');
+        renderSlides(); // 重新渲染以显示最新顺序
+      }
+
+      function resetToDefault() {
+        if (confirm('清空配置将使系统自动扫描所有图片，确定吗？')) {
+          slides = [];
+          renderSlides();
+          CarouselSystem.saveConfig(slides);
+          alert('已清空配置');
+        }
+      }
+
+      async function scanImages() {
+        const scanned = await CarouselSystem.scanImages();
+        slides = scanned.map(img => ({ name: img.name, title: '', description: '' }));
+        renderSlides();
+        alert(`扫描到 ${slides.length} 张图片`);
+      }
+
+      function importImages() {
+        const files = document.getElementById('import-images').files;
+        if (files.length === 0) return;
+        
+        alert(`请将选中的 ${files.length} 个文件手动复制到 image/log.image/ 文件夹，然后点击“扫描图片”按钮`);
+      }
+
+      function addNewSlide() {
+        slides.push({ name: '', title: '', description: '' });
+        renderSlides();
+      }
+
+      // 删除项（全局函数，供 onclick 调用）
+      window.deleteSlide = function(index) {
+        if (slides.length <= 1) {
+          alert('至少保留一张轮播图片');
+          return;
+        }
+        slides.splice(index, 1);
+        renderSlides();
+      };
+
+      document.getElementById('add-slide-btn').addEventListener('click', addNewSlide);
+      document.getElementById('save-btn').addEventListener('click', saveToStorage);
+      document.getElementById('reset-btn').addEventListener('click', resetToDefault);
+      document.getElementById('scan-btn').addEventListener('click', scanImages);
+      document.getElementById('import-images').addEventListener('change', importImages);
+
+      scanImages();
+    })();
+  </script>
+</body>
+</html>

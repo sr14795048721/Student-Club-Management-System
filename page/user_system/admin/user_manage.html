@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户管理 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      color: #1e1e2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .back-btn {
+      padding: 10px 20px;
+      background: #1e1e2f;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .back-btn:hover {
+      background: #2a2a3f;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #f4f4f9;
+      border-radius: 20px;
+      padding: 10px 18px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      padding: 0 10px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: #1e1e2f;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2a2a3f;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #1e1e2f;
+    }
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: 8px;
+      transition: 0.2s;
+    }
+    .btn-edit {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .btn-delete {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .btn-edit:hover {
+      background: #bbdefb;
+    }
+    .btn-delete:hover {
+      background: #ffcdd2;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+    }
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+      color: #1e1e2f;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #2d2d3a;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1.5px solid #dde0e8;
+      border-radius: 12px;
+      outline: none;
+    }
+    .form-group input:focus {
+      border-color: #4a4a6a;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .modal-actions .btn {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-users-cog"></i> 用户管理</h1>
+    <a href="admin.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i> 返回
+    </a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="搜索用户...">
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <i class="fas fa-plus"></i> 添加用户
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>用户名</th>
+            <th>邮箱</th>
+            <th>角色</th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="userTable">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal" id="userModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">添加用户</h2>
+      <form id="userForm">
+        <input type="hidden" id="userId">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="username" required>
+        </div>
+        <div class="form-group">
+          <label>邮箱</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+          <label>角色</label>
+          <input type="text" id="role" value="用户" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeModal()">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin_data.js"></script>
+  <script>
+    const STORAGE_KEY = 'systemUsers';
+
+    function loadUsers() {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const tbody = document.getElementById('userTable');
+      tbody.innerHTML = '';
+
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${user.id}</td>
+          <td>${user.username}</td>
+          <td>${user.email}</td>
+          <td>${user.role}</td>
+          <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="action-btn btn-edit" onclick="editUser(${user.id})">
+              <i class="fas fa-edit"></i> 编辑
+            </button>
+            <button class="action-btn btn-delete" onclick="deleteUser(${user.id})">
+              <i class="fas fa-trash"></i> 删除
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = '添加用户';
+      document.getElementById('userForm').reset();
+      document.getElementById('userId').value = '';
+      document.getElementById('userModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('userModal').classList.remove('active');
+    }
+
+    function editUser(id) {
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const user = users.find(u => u.id === id);
+      if (user) {
+        document.getElementById('modalTitle').textContent = '编辑用户';
+        document.getElementById('userId').value = user.id;
+        document.getElementById('username').value = user.username;
+        document.getElementById('email').value = user.email;
+        document.getElementById('role').value = user.role;
+        document.getElementById('userModal').classList.add('active');
+      }
+    }
+
+    function deleteUser(id) {
+      if (confirm('确定要删除该用户吗？')) {
+        let users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        users = users.filter(u => u.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+        loadUsers();
+      }
+    }
+
+    document.getElementById('userForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const userId = document.getElementById('userId').value;
+      
+      const userData = {
+        id: userId ? parseInt(userId) : Date.now(),
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        role: document.getElementById('role').value,
+        createdAt: userId ? users.find(u => u.id === parseInt(userId)).createdAt : new Date().toISOString()
+      };
+
+      if (userId) {
+        const index = users.findIndex(u => u.id === parseInt(userId));
+        users[index] = userData;
+      } else {
+        users.push(userData);
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+      closeModal();
+      loadUsers();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const search = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#userTable tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(search) ? '' : 'none';
+      });
+    });
+
+    loadUsers();
+  </script>
+</body>
+</html>

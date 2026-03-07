@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统设置 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      color: #1e1e2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .back-btn {
+      padding: 10px 20px;
+      background: #f4f4f9;
+      color: #1e1e2f;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .back-btn:hover {
+      background: #e6e9f0;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      color: #1e1e2f;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+    .setting-info h3 {
+      font-size: 1rem;
+      color: #1e1e2f;
+      margin-bottom: 0.25rem;
+    }
+    .setting-info p {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .toggle {
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: #ccc;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .toggle.active {
+      background: #4caf50;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: 0.3s;
+    }
+    .toggle.active::after {
+      left: 27px;
+    }
+    .input-field {
+      padding: 10px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      width: 200px;
+      transition: 0.2s;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #1e1e2f;
+    }
+    .select-field {
+      padding: 10px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      width: 200px;
+      cursor: pointer;
+      background: white;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .btn-primary {
+      background: #1e1e2f;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2a2a3f;
+    }
+    .btn-secondary {
+      background: #f4f4f9;
+      color: #1e1e2f;
+    }
+    .btn-secondary:hover {
+      background: #e6e9f0;
+    }
+    .action-bar {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+    }
+    .success-msg {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-cog"></i> 系统设置</h1>
+    <button class="back-btn" onclick="location.href='admin.html'">
+      <i class="fas fa-arrow-left"></i> 返回
+    </button>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2><i class="fas fa-info-circle"></i> 基本设置</h2>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>系统名称</h3>
+          <p>设置系统显示的名称</p>
+        </div>
+        <input type="text" class="input-field" id="systemName" value="社团管理系统">
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>系统版本</h3>
+          <p>当前系统版本号</p>
+        </div>
+        <input type="text" class="input-field" id="systemVersion" value="v1.0.0" readonly style="background:#f8f9fa;">
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>维护模式</h3>
+          <p>开启后用户无法访问系统</p>
+        </div>
+        <div class="toggle" id="maintenanceMode" onclick="toggleSetting(this)"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-bell"></i> 通知设置</h2>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>邮件通知</h3>
+          <p>向用户发送邮件通知</p>
+        </div>
+        <div class="toggle active" id="emailNotification" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>站内通知</h3>
+          <p>系统内消息推送</p>
+        </div>
+        <div class="toggle active" id="inAppNotification" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>活动提醒</h3>
+          <p>活动开始前自动提醒</p>
+        </div>
+        <div class="toggle active" id="activityReminder" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>提醒时间</h3>
+          <p>活动开始前多久提醒</p>
+        </div>
+        <select class="select-field" id="reminderTime">
+          <option value="15">15分钟</option>
+          <option value="30" selected>30分钟</option>
+          <option value="60">1小时</option>
+          <option value="120">2小时</option>
+          <option value="1440">1天</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-shield-alt"></i> 安全设置</h2>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>强制密码复杂度</h3>
+          <p>要求密码包含字母、数字和特殊字符</p>
+        </div>
+        <div class="toggle active" id="passwordComplexity" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>密码最小长度</h3>
+          <p>用户密码的最小字符数</p>
+        </div>
+        <select class="select-field" id="minPasswordLength">
+          <option value="6">6位</option>
+          <option value="8" selected>8位</option>
+          <option value="10">10位</option>
+          <option value="12">12位</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>登录失败锁定</h3>
+          <p>多次登录失败后锁定账户</p>
+        </div>
+        <div class="toggle active" id="loginLock" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>会话超时时间</h3>
+          <p>用户无操作后自动退出</p>
+        </div>
+        <select class="select-field" id="sessionTimeout">
+          <option value="30">30分钟</option>
+          <option value="60" selected>1小时</option>
+          <option value="120">2小时</option>
+          <option value="240">4小时</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-users"></i> 用户设置</h2>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>允许用户注册</h3>
+          <p>开放用户自主注册功能</p>
+        </div>
+        <div class="toggle active" id="allowRegister" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>新用户默认角色</h3>
+          <p>新注册用户的默认权限</p>
+        </div>
+        <select class="select-field" id="defaultRole">
+          <option value="student" selected>学生</option>
+          <option value="teacher">教师</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>需要邮箱验证</h3>
+          <p>注册时验证邮箱地址</p>
+        </div>
+        <div class="toggle active" id="emailVerification" onclick="toggleSetting(this)"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-calendar-alt"></i> 活动设置</h2>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>活动需要审核</h3>
+          <p>新建活动需管理员审核</p>
+        </div>
+        <div class="toggle active" id="activityApproval" onclick="toggleSetting(this)"></div>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>最大报名人数</h3>
+          <p>单个活动的最大参与人数</p>
+        </div>
+        <input type="number" class="input-field" id="maxParticipants" value="100" min="1">
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>取消报名截止时间</h3>
+          <p>活动开始前多久不能取消</p>
+        </div>
+        <select class="select-field" id="cancelDeadline">
+          <option value="1">1小时</option>
+          <option value="2">2小时</option>
+          <option value="6" selected>6小时</option>
+          <option value="24">24小时</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-secondary" onclick="resetSettings()">重置</button>
+      <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+    </div>
+  </div>
+
+  <div class="success-msg" id="successMsg">
+    <i class="fas fa-check-circle"></i> 设置已保存
+  </div>
+
+  <script>
+    function toggleSetting(element) {
+      element.classList.toggle('active');
+    }
+
+    function loadSettings() {
+      const settings = JSON.parse(localStorage.getItem('systemSettings') || '{}');
+      
+      if (settings.systemName) document.getElementById('systemName').value = settings.systemName;
+      if (settings.reminderTime) document.getElementById('reminderTime').value = settings.reminderTime;
+      if (settings.minPasswordLength) document.getElementById('minPasswordLength').value = settings.minPasswordLength;
+      if (settings.sessionTimeout) document.getElementById('sessionTimeout').value = settings.sessionTimeout;
+      if (settings.defaultRole) document.getElementById('defaultRole').value = settings.defaultRole;
+      if (settings.maxParticipants) document.getElementById('maxParticipants').value = settings.maxParticipants;
+      if (settings.cancelDeadline) document.getElementById('cancelDeadline').value = settings.cancelDeadline;
+      
+      const toggles = {
+        maintenanceMode: settings.maintenanceMode,
+        emailNotification: settings.emailNotification !== false,
+        inAppNotification: settings.inAppNotification !== false,
+        activityReminder: settings.activityReminder !== false,
+        passwordComplexity: settings.passwordComplexity !== false,
+        loginLock: settings.loginLock !== false,
+        allowRegister: settings.allowRegister !== false,
+        emailVerification: settings.emailVerification !== false,
+        activityApproval: settings.activityApproval !== false
+      };
+      
+      Object.keys(toggles).forEach(key => {
+        const element = document.getElementById(key);
+        if (toggles[key]) {
+          element.classList.add('active');
+        } else {
+          element.classList.remove('active');
+        }
+      });
+    }
+
+    function saveSettings() {
+      const settings = {
+        systemName: document.getElementById('systemName').value,
+        maintenanceMode: document.getElementById('maintenanceMode').classList.contains('active'),
+        emailNotification: document.getElementById('emailNotification').classList.contains('active'),
+        inAppNotification: document.getElementById('inAppNotification').classList.contains('active'),
+        activityReminder: document.getElementById('activityReminder').classList.contains('active'),
+        reminderTime: document.getElementById('reminderTime').value,
+        passwordComplexity: document.getElementById('passwordComplexity').classList.contains('active'),
+        minPasswordLength: document.getElementById('minPasswordLength').value,
+        loginLock: document.getElementById('loginLock').classList.contains('active'),
+        sessionTimeout: document.getElementById('sessionTimeout').value,
+        allowRegister: document.getElementById('allowRegister').classList.contains('active'),
+        defaultRole: document.getElementById('defaultRole').value,
+        emailVerification: document.getElementById('emailVerification').classList.contains('active'),
+        activityApproval: document.getElementById('activityApproval').classList.contains('active'),
+        maxParticipants: document.getElementById('maxParticipants').value,
+        cancelDeadline: document.getElementById('cancelDeadline').value
+      };
+      
+      localStorage.setItem('systemSettings', JSON.stringify(settings));
+      
+      const msg = document.getElementById('successMsg');
+      msg.style.display = 'block';
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 2000);
+    }
+
+    function resetSettings() {
+      if (confirm('确定要重置所有设置为默认值吗？')) {
+        localStorage.removeItem('systemSettings');
+        location.reload();
+      }
+    }
+
+    window.addEventListener('load', loadSettings);
+  </script>
+</body>
+</html>

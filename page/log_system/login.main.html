@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>社团管理系统</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="/page/log_system/page-transition.css">
+  <style>
+    /* 基础重置与全屏布局 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;  /* 防止滚动，全屏轮播 */
+    }
+
+    /* 主容器 相对定位，作为轮播的锚点，同时让登录卡片悬浮 */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: #111; /* 后备背景色 */
+    }
+
+    /* ---------- 全屏轮播样式 (Swiper) ---------- */
+    .swiper {
+      width: 100%;
+      height: 100%;
+    }
+
+    .swiper-slide {
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      /* 每个slide的背景图通过内联style设置，这里不再重复定义 */
+    }
+
+    .swiper-slide::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* 轮播图片上的文字 (左侧标语) 增加非对称视觉元素 */
+    .slide-caption {
+      position: absolute;
+      bottom: 100px;
+      left: 40px;
+      color: #fff;
+      z-index: 3;
+      max-width: 500px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      pointer-events: none; /* 不干扰轮播切换和卡片点击 */
+    }
+
+    .slide-caption h2 {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .slide-caption p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    /* 自定义分页器位置 (移到左下角，避免与右侧卡片重叠) */
+    .swiper-pagination-custom {
+      left: 40px !important;
+      bottom: 30px !important;
+      width: auto !important;
+      text-align: left;
+    }
+
+    .swiper-pagination-bullet {
+      background: rgba(255,255,255,0.6);
+      opacity: 0.8;
+      width: 10px;
+      height: 10px;
+      margin: 0 8px 0 0 !important;
+      transition: all 0.2s ease;
+    }
+
+    .swiper-pagination-bullet-active {
+      background: #ffffff;
+      width: 24px;
+      border-radius: 12px;
+      opacity: 1;
+    }
+
+    /* ---------- 非对称登录卡片 (悬浮右侧，绝对定位) ---------- */
+    .login-card {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 6%;
+      width: 420px;
+      max-width: calc(100% - 60px);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset;
+      padding: 40px 36px;
+      z-index: 20;
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -10%;
+      right: -5%;
+      width: 120%;
+      height: 120%;
+      background: 
+        linear-gradient(165deg, transparent 0%, transparent 15%, rgba(100,150,255,0.08) 15%, rgba(100,150,255,0.08) 20%, transparent 20%),
+        linear-gradient(170deg, transparent 20%, transparent 30%, rgba(150,100,255,0.06) 30%, rgba(150,100,255,0.06) 38%, transparent 38%),
+        linear-gradient(175deg, transparent 40%, transparent 48%, rgba(100,200,255,0.07) 48%, rgba(100,200,255,0.07) 58%, transparent 58%),
+        linear-gradient(168deg, transparent 60%, transparent 68%, rgba(180,120,255,0.05) 68%, rgba(180,120,255,0.05) 80%, transparent 80%),
+        linear-gradient(172deg, transparent 75%, transparent 82%, rgba(120,180,255,0.06) 82%, rgba(120,180,255,0.06) 95%, transparent 95%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .login-header {
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-header .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: #1e1e2f;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .login-header .logo i {
+      color: #3a3a5a;
+      font-size: 2rem;
+    }
+
+    .login-header h2 {
+      font-size: 1.9rem;
+      font-weight: 600;
+      color: #0b0b1a;
+      line-height: 1.2;
+    }
+
+    .login-header p {
+      color: #5a5a6e;
+      font-size: 0.95rem;
+      margin-top: 8px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #2d2d3a;
+      margin-bottom: 6px;
+    }
+
+    .input-field {
+      display: flex;
+      align-items: center;
+      background: #f4f4f9;
+      border-radius: 18px;
+      padding: 4px 18px;
+      border: 1.5px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .input-field i {
+      color: #7a7a8f;
+      font-size: 1.1rem;
+      width: 24px;
+    }
+
+    .input-field input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 14px 0 14px 8px;
+      font-size: 1rem;
+      outline: none;
+      color: #1a1a2a;
+    }
+
+    .input-field:focus-within {
+      border-color: #4a4a6a;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 24px 0 28px;
+      font-size: 0.9rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #3f3f52;
+      cursor: pointer;
+    }
+
+    .remember-me input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #2d2d44;
+      border-radius: 4px;
+    }
+
+    .forgot-link {
+      color: #2d2d44;
+      text-decoration: none;
+      font-weight: 500;
+      border-bottom: 1px dashed #a0a0b0;
+    }
+
+    .forgot-link:hover {
+      color: #000;
+      border-bottom-style: solid;
+    }
+
+    .login-btn {
+      width: 100%;
+      background: linear-gradient(145deg, #1e1e2f, #2a2a3f);
+      color: white;
+      border: none;
+      padding: 16px 0;
+      border-radius: 40px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 10px 20px -8px rgba(0,0,0,0.3);
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-btn i {
+      font-size: 1.2rem;
+      transition: transform 0.2s;
+    }
+
+    .login-btn:hover {
+      background: linear-gradient(145deg, #2a2a3f, #1e1e2f);
+      box-shadow: 0 15px 25px -8px #0b0b1a;
+      transform: scale(1.01);
+    }
+
+    .login-btn:hover i {
+      transform: translateX(4px);
+    }
+
+    .signup-prompt {
+      text-align: center;
+      margin-top: 28px;
+      color: #5d5d72;
+      font-size: 0.95rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .signup-prompt a {
+      color: #1e1e2f;
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1.5px solid #c4c4d0;
+    }
+
+    .signup-prompt a:hover {
+      border-bottom-color: #1e1e2f;
+    }
+
+    .footer-note {
+      position: absolute;
+      bottom: 20px;
+      left: 40px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.8rem;
+      z-index: 10;
+      letter-spacing: 0.3px;
+    }
+
+    /* ---------- 响应式调整 (移动端) ---------- */
+    @media screen and (max-width: 800px) {
+      .login-card {
+        width: 380px;
+        right: 5%;
+        padding: 32px 24px;
+      }
+      .slide-caption {
+        bottom: 80px;
+        left: 25px;
+        max-width: 300px;
+      }
+      .slide-caption h2 {
+        font-size: 2rem;
+      }
+    }
+
+    @media screen and (max-width: 600px) {
+      .hero {
+        overflow: auto;  /* 允许滚动以查看完整卡片 */
+      }
+      .login-card {
+        position: relative;
+        top: auto;
+        right: auto;
+        transform: none;
+        margin: 60px auto 30px;
+        width: 90%;
+        max-width: 400px;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 30px 50px rgba(0,0,0,0.5);
+      }
+      .swiper {
+        height: 100%;
+      }
+      .slide-caption {
+        bottom: 100px;
+        left: 20px;
+        right: 20px;
+      }
+      .footer-note {
+        left: 20px;
+        bottom: 10px;
+        color: rgba(255,255,255,0.7);
+      }
+      /* 移动端分页器依然在左下角，避免遮挡卡片 */
+      .swiper-pagination-custom {
+        left: 20px !important;
+        bottom: 20px !important;
+      }
+    }
+
+    /* 小屏幕手机适配 */
+    @media screen and (max-width: 480px) {
+      .login-card {
+        padding: 28px 18px;
+        border-radius: 28px;
+      }
+      .login-header .logo {
+        font-size: 1.5rem;
+      }
+      .login-header h2 {
+        font-size: 1.6rem;
+      }
+      .input-field {
+        padding: 2px 14px;
+      }
+      .input-field input {
+        padding: 12px 0 12px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <!-- 全屏轮播区域 (Swiper) -->
+    <div class="swiper">
+      <div class="swiper-wrapper" id="dynamic-slides-wrapper">
+        <!-- 幻灯片将通过 JavaScript 动态插入，便于自定义图片 -->
+      </div>
+      <div class="swiper-pagination swiper-pagination-custom"></div>
+    </div>
+
+    <!-- 非对称悬浮登录卡片 -->
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo">
+          <i class="fas fa-cube"></i>
+          <span>社团管理系统</span>
+        </div>
+        <h2>热爱，创造无限可能</h2>
+        <p>使用你的账号继续访问</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label for="email">电子邮箱</label>
+          <div class="input-field">
+            <i class="far fa-envelope"></i>
+            <input type="email" id="email" placeholder="your@email.com" required>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="password">密码</label>
+          <div class="input-field">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="··········" required>
+          </div>
+        </div>
+
+        <div class="options">
+          <label class="remember-me">
+            <input type="checkbox" checked> 记住我
+          </label>
+          <a href="#" class="forgot-link">忘记密码?</a>
+        </div>
+
+        <button type="submit" class="login-btn">
+          <span>登录</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+
+        <p class="signup-prompt">
+          还没有账号? <a href="#" onclick="switchToRegister(event)">立即注册</a>
+        </p>
+      </form>
+    </div>
+
+    <div class="footer-note">
+      © 2025 社团管理系统
+    </div>
+  </div>
+
+  <!-- 引入 Swiper JS、共享JS和初始化脚本 -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="/page/api-client.js"></script>
+  <script src="/page/log_system/carousel_storage.js"></script>
+  <script src="/page/log_system/carousel_image.js"></script>
+  <script src="/page/log_system/log_image_system.js"></script>
+  <script src="/page/log_system/login-handler.js"></script>
+  <script>
+    (function() {
+      // 使用共享模块加载配置
+      const slidesConfig = CarouselSystem.loadConfig();
+      const wrapper = document.getElementById('dynamic-slides-wrapper');
+      if (!wrapper) return;
+      wrapper.innerHTML = '';
+
+      // 生成幻灯片
+      const loadSlides = async () => {
+        const config = slidesConfig.length > 0 ? slidesConfig : await CarouselSystem.scanImages();
+        
+        for (const item of config) {
+          const slide = document.createElement('div');
+          slide.className = 'swiper-slide';
+          const imgPath = await CarouselSystem.getImagePath(item.name);
+          slide.style.backgroundImage = `url('${imgPath}')`;
+
+          const caption = document.createElement('div');
+          caption.className = 'slide-caption';
+          caption.innerHTML = `<h2>${item.title || ''}</h2><p>${item.description || ''}</p>`;
+
+          slide.appendChild(caption);
+          wrapper.appendChild(slide);
+        }
+
+        // 初始化 Swiper
+        new Swiper('.swiper', {
+          autoplay: {
+            delay: 4000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          },
+          loop: true,
+          speed: 800,
+          pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+            dynamicBullets: false,
+          },
+          navigation: false,
+          grabCursor: true,
+          preloadImages: true,
+          updateOnWindowResize: true,
+        });
+      };
+
+      window.addEventListener('load', loadSlides);
+    })();
+  </script>
+  <script>
+    // 登录表单处理
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.querySelector('form');
+      if (form) {
+        form.addEventListener('submit', handleLogin);
+      }
+    });
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      const username = email.split('@')[0] || email;
+      
+      ApiClient.login(username, password)
+        .then(result => {
+          if (result.success) {
+            alert('登录成功！欢迎 ' + result.user.name);
+            
+            setTimeout(() => {
+              if (result.user.role === 'admin') {
+                window.location.href = '../user_system/admin/admin.html';
+              } else if (result.user.role === 'teacher') {
+                window.location.href = '../user_system/teacher/teacher.html';
+              } else {
+                window.location.href = '../user_system/student/student.html';
+              }
+            }, 500);
+          }
+        })
+        .catch(error => {
+          alert('登录失败: ' + error.message);
+        });
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      
+      if (password !== confirmPassword) {
+        alert('两次密码输入不一致！');
+        return;
+      }
+      
+      if (password.length < 6) {
+        alert('密码长度至少6位！');
+        return;
+      }
+      
+      ApiClient.register({
+        username,
+        email,
+        password,
+        name: username,
+        role: 'student',
+        phone: ''
+      })
+        .then(result => {
+          if (result.success) {
+            alert('注册成功！请登录');
+            switchToLogin(e);
+          }
+        })
+        .catch(error => {
+          alert('注册失败: ' + error.message);
+        });
+    }
+
+    function startTransition(e) {
+      e.preventDefault();
+      document.body.classList.add('transitioning');
+      setTimeout(() => {
+        window.location.href = e.target.href;
+      }, 1000);
+    }
+
+    function switchToRegister(e) {
+      e.preventDefault();
+      document.body.classList.add('transitioning');
+      
+      setTimeout(() => {
+        const loginCard = document.querySelector('.login-card');
+        loginCard.innerHTML = `
+          <div class="login-header">
+            <div class="logo">
+              <i class="fas fa-cube"></i>
+              <span>社团管理系统</span>
+            </div>
+            <h2>加入我们</h2>
+            <p>创建你的账号开始使用</p>
+          </div>
+
+          <form onsubmit="handleRegister(event)">
+            <div class="input-group">
+              <label for="username">用户名</label>
+              <div class="input-field">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" placeholder="请输入用户名" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="email">电子邮箱</label>
+              <div class="input-field">
+                <i class="far fa-envelope"></i>
+                <input type="email" id="email" placeholder="your@email.com" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="password">密码</label>
+              <div class="input-field">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="至少6位字符" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="confirm-password">确认密码</label>
+              <div class="input-field">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="confirm-password" placeholder="再次输入密码" required>
+              </div>
+            </div>
+
+            <button type="submit" class="login-btn">
+              <span>注册</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <p class="signup-prompt">
+              已有账号? <a href="#" onclick="switchToLogin(event)">立即登录</a>
+            </p>
+          </form>
+        `;
+        document.body.classList.remove('transitioning');
+      }, 400);
+    }
+
+    function switchToLogin(e) {
+      e.preventDefault();
+      document.body.classList.add('transitioning');
+      
+      setTimeout(() => {
+        const loginCard = document.querySelector('.login-card');
+        loginCard.innerHTML = `
+          <div class="login-header">
+            <div class="logo">
+              <i class="fas fa-cube"></i>
+              <span>社团管理系统</span>
+            </div>
+            <h2>热爱，创造无限可能</h2>
+            <p>使用你的账号继续访问</p>
+          </div>
+
+          <form onsubmit="handleLogin(event)">
+            <div class="input-group">
+              <label for="email">电子邮箱</label>
+              <div class="input-field">
+                <i class="far fa-envelope"></i>
+                <input type="email" id="email" placeholder="your@email.com" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="password">密码</label>
+              <div class="input-field">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="··········" required>
+              </div>
+            </div>
+
+            <div class="options">
+              <label class="remember-me">
+                <input type="checkbox" checked> 记住我
+              </label>
+              <a href="#" class="forgot-link">忘记密码?</a>
+            </div>
+
+            <button type="submit" class="login-btn">
+              <span>登录</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <p class="signup-prompt">
+              还没有账号? <a href="#" onclick="switchToRegister(event)">立即注册</a>
+            </p>
+          </form>
+        `;
+        document.body.classList.remove('transitioning');
+      }, 400);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主页配置 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f0f2f5; min-height: 100vh; }
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 1.5rem; color: #1e1e2f; display: flex; align-items: center; gap: 10px; }
+    .back-btn {
+      padding: 10px 20px;
+      background: #f4f4f9;
+      color: #1e1e2f;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .back-btn:hover { background: #e6e9f0; }
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 2rem; }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .card h2 {
+      font-size: 1.3rem;
+      color: #1e1e2f;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #5e2a84;
+    }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    .banner-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .banner-item .remove-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .news-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .news-item .remove-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+      margin-right: 10px;
+    }
+    .btn-primary { background: #5e2a84; color: white; }
+    .btn-primary:hover { background: #7b3fa0; }
+    .btn-secondary { background: #f4f4f9; color: #1e1e2f; }
+    .btn-secondary:hover { background: #e6e9f0; }
+    .action-bar { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
+    .success-msg {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-home"></i> 主页配置</h1>
+    <button class="back-btn" onclick="location.href='admin.html'">
+      <i class="fas fa-arrow-left"></i> 返回
+    </button>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2><i class="fas fa-cog"></i> 基本设置</h2>
+      <div class="form-group">
+        <label>系统名称</label>
+        <input type="text" id="systemName" placeholder="社团管理系统">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-images"></i> 轮播图配置</h2>
+      <div id="bannerList"></div>
+      <button class="btn btn-secondary" onclick="addBanner()">
+        <i class="fas fa-plus"></i> 添加轮播图
+      </button>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-newspaper"></i> 新闻资讯</h2>
+      <div id="newsList"></div>
+      <button class="btn btn-secondary" onclick="addNews()">
+        <i class="fas fa-plus"></i> 添加新闻
+      </button>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn btn-secondary" onclick="previewHome()">预览</button>
+      <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+    </div>
+  </div>
+
+  <div class="success-msg" id="successMsg">
+    <i class="fas fa-check-circle"></i> 配置已保存
+  </div>
+
+  <script>
+    let banners = [];
+    let news = [];
+
+    function loadConfig() {
+      const config = JSON.parse(localStorage.getItem('homePageConfig') || '{}');
+      
+      document.getElementById('systemName').value = config.systemName || '社团管理系统';
+      
+      banners = config.banners || [
+        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: 'https://via.placeholder.com/1200x500/5e2a84/ffffff?text=Banner+1' }
+      ];
+      
+      news = config.news || [
+        { title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与...', date: '2025-01-15', views: 1234 }
+      ];
+      
+      renderBanners();
+      renderNews();
+    }
+
+    function renderBanners() {
+      const list = document.getElementById('bannerList');
+      list.innerHTML = banners.map((b, i) => `
+        <div class="banner-item">
+          <button class="remove-btn" onclick="removeBanner(${i})"><i class="fas fa-times"></i></button>
+          <div class="form-group">
+            <label>标题</label>
+            <input type="text" value="${b.title}" onchange="banners[${i}].title=this.value">
+          </div>
+          <div class="form-group">
+            <label>描述</label>
+            <input type="text" value="${b.desc}" onchange="banners[${i}].desc=this.value">
+          </div>
+          <div class="form-group">
+            <label>图片URL</label>
+            <input type="text" value="${b.image}" onchange="banners[${i}].image=this.value">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addBanner() {
+      banners.push({ title: '新轮播图', desc: '描述内容', image: 'https://via.placeholder.com/1200x500' });
+      renderBanners();
+    }
+
+    function removeBanner(index) {
+      banners.splice(index, 1);
+      renderBanners();
+    }
+
+    function renderNews() {
+      const list = document.getElementById('newsList');
+      list.innerHTML = news.map((n, i) => `
+        <div class="news-item">
+          <button class="remove-btn" onclick="removeNews(${i})"><i class="fas fa-times"></i></button>
+          <div class="form-group">
+            <label>标题</label>
+            <input type="text" value="${n.title}" onchange="news[${i}].title=this.value">
+          </div>
+          <div class="form-group">
+            <label>描述</label>
+            <textarea onchange="news[${i}].desc=this.value">${n.desc}</textarea>
+          </div>
+          <div class="form-group">
+            <label>日期</label>
+            <input type="date" value="${n.date}" onchange="news[${i}].date=this.value">
+          </div>
+          <div class="form-group">
+            <label>浏览量</label>
+            <input type="number" value="${n.views}" onchange="news[${i}].views=this.value">
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addNews() {
+      news.push({ title: '新闻标题', desc: '新闻描述', date: new Date().toISOString().split('T')[0], views: 0 });
+      renderNews();
+    }
+
+    function removeNews(index) {
+      news.splice(index, 1);
+      renderNews();
+    }
+
+    function saveConfig() {
+      const config = {
+        systemName: document.getElementById('systemName').value,
+        banners,
+        news
+      };
+      
+      localStorage.setItem('homePageConfig', JSON.stringify(config));
+      
+      const msg = document.getElementById('successMsg');
+      msg.style.display = 'block';
+      setTimeout(() => { msg.style.display = 'none'; }, 2000);
+    }
+
+    function previewHome() {
+      window.open('../../../index.html', '_blank');
+    }
+
+    window.addEventListener('load', loadConfig);
+  </script>
+</body>
+</html>

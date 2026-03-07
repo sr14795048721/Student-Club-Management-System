@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      color: #1e1e2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header h1 i {
+      color: #3a3a5a;
+    }
+    .logout-btn {
+      padding: 10px 20px;
+      background: #1e1e2f;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+    .logout-btn:hover {
+      background: #2a2a3f;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      color: #1e1e2f;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card h2 i {
+      color: #3a3a5a;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .stat-icon.blue { background: #e3f2fd; color: #1976d2; }
+    .stat-icon.green { background: #e8f5e9; color: #388e3c; }
+    .stat-icon.orange { background: #fff3e0; color: #f57c00; }
+    .stat-icon.purple { background: #f3e5f5; color: #7b1fa2; }
+    .stat-info h3 {
+      font-size: 2rem;
+      color: #1e1e2f;
+      margin-bottom: 0.25rem;
+    }
+    .stat-info p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .menu-item {
+      background: white;
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      border: 2px solid transparent;
+    }
+    .menu-item:hover {
+      border-color: #1e1e2f;
+      transform: translateY(-4px);
+    }
+    .menu-item i {
+      font-size: 2.5rem;
+      color: #3a3a5a;
+      margin-bottom: 1rem;
+    }
+    .menu-item h3 {
+      font-size: 1.1rem;
+      color: #1e1e2f;
+      margin-bottom: 0.5rem;
+    }
+    .menu-item p {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-user-shield"></i> 管理后台</h1>
+    <button class="logout-btn" onclick="location.href='../../log_system/login.main.html'">
+      <i class="fas fa-sign-out-alt"></i> 退出登录
+    </button>
+  </div>
+
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+          <h3>156</h3>
+          <p>用户总数</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-user-friends"></i></div>
+        <div class="stat-info">
+          <h3>23</h3>
+          <p>社团数量</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-info">
+          <h3>48</h3>
+          <p>活动总数</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-bell"></i></div>
+        <div class="stat-info">
+          <h3>12</h3>
+          <p>待处理通知</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:2rem;">
+      <div class="card">
+        <h2><i class="fas fa-th-large"></i> 管理功能</h2>
+        <div class="menu-grid">
+          <div class="menu-item" onclick="location.href='home_config.html'">
+            <i class="fas fa-home"></i>
+            <h3>主页配置</h3>
+            <p>配置首页内容与布局</p>
+          </div>
+          <div class="menu-item" onclick="location.href='user_manage.html'">
+            <i class="fas fa-users-cog"></i>
+            <h3>用户管理</h3>
+            <p>管理系统用户信息</p>
+          </div>
+          <div class="menu-item" onclick="location.href='club_manage.html'">
+            <i class="fas fa-sitemap"></i>
+            <h3>社团管理</h3>
+            <p>管理社团信息与成员</p>
+          </div>
+          <div class="menu-item" onclick="location.href='activity_manage.html'">
+            <i class="fas fa-calendar-alt"></i>
+            <h3>活动管理</h3>
+            <p>管理社团活动与报名</p>
+          </div>
+          <div class="menu-item" onclick="alert('通知管理功能开发中')">
+            <i class="fas fa-bullhorn"></i>
+            <h3>通知管理</h3>
+            <p>发布系统通知公告</p>
+          </div>
+          <div class="menu-item" onclick="alert('权限管理功能开发中')">
+            <i class="fas fa-shield-alt"></i>
+            <h3>权限管理</h3>
+            <p>配置用户角色权限</p>
+          </div>
+          <div class="menu-item" onclick="location.href='../../log_system/login.image.html'">
+            <i class="fas fa-images"></i>
+            <h3>轮播配置</h3>
+            <p>设置登录页轮播图</p>
+          </div>
+          <div class="menu-item" onclick="location.href='system_settings.html'">
+            <i class="fas fa-cog"></i>
+            <h3>系统设置</h3>
+            <p>配置系统参数</p>
+          </div>
+          <div class="menu-item" onclick="location.href='data_statistics.html'">
+            <i class="fas fa-chart-bar"></i>
+            <h3>数据统计</h3>
+            <p>查看系统数据报表</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-calendar"></i> 活动日历</h2>
+        <div id="miniCalendar"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="admin_data.js"></script>
+  <script>
+    // 加载统计数据
+    window.addEventListener('load', () => {
+      const stats = AdminData.getStats();
+      
+      document.querySelectorAll('.stat-info h3')[0].textContent = stats.userCount;
+      document.querySelectorAll('.stat-info h3')[1].textContent = stats.clubCount;
+      document.querySelectorAll('.stat-info h3')[2].textContent = stats.activityCount;
+      document.querySelectorAll('.stat-info h3')[3].textContent = stats.notificationCount;
+      
+      renderMiniCalendar();
+    });
+
+    function renderMiniCalendar() {
+      const activities = JSON.parse(localStorage.getItem('systemActivities') || '[]');
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      
+      let html = '<div style="text-align:center;font-size:1.2rem;margin-bottom:1rem;font-weight:600;">' + year + '年' + (month+1) + '月</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;">';
+      
+      ['日','一','二','三','四','五','六'].forEach(d => {
+        html += '<div style="text-align:center;font-weight:600;padding:0.5rem;background:#f8f9fa;border-radius:8px;">' + d + '</div>';
+      });
+      
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div></div>';
+      }
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+        const dayActivities = activities.filter(a => a.startTime && a.startTime.startsWith(dateStr));
+        const hasActivity = dayActivities.length > 0;
+        const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+        
+        html += '<div style="border:1px solid ' + (hasActivity ? '#90caf9' : '#e0e0e0') + ';padding:0.5rem;min-height:70px;background:' + (hasActivity ? '#e3f2fd' : isToday ? '#fff3e0' : 'white') + ';border-radius:8px;cursor:pointer;" onclick="showDayActivities(' + day + ')">';
+        html += '<div style="font-weight:' + (isToday ? '700' : '600') + ';color:' + (isToday ? '#f57c00' : '#1e1e2f') + ';">' + day + '</div>';
+        if (dayActivities.length > 0) {
+          html += '<div style="font-size:0.7rem;color:#1976d2;margin-top:4px;">' + dayActivities.length + '个活动</div>';
+        }
+        html += '</div>';
+      }
+      
+      html += '</div>';
+      document.getElementById('miniCalendar').innerHTML = html;
+    }
+
+    function showDayActivities(day) {
+      const activities = JSON.parse(localStorage.getItem('systemActivities') || '[]');
+      const now = new Date();
+      const dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+      const dayActivities = activities.filter(a => a.startTime && a.startTime.startsWith(dateStr));
+      
+      if (dayActivities.length > 0) {
+        let msg = dateStr + ' 的活动：\n\n';
+        dayActivities.forEach(a => {
+          msg += '- ' + a.name + ' (' + a.club + ')\n';
+        });
+        alert(msg);
+      } else {
+        alert('该日无活动');
+      }
+    }
+  </script>
+</body>
+</html>

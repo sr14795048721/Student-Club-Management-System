@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社团管理 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+    .header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      color: #1e1e2f;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .back-btn {
+      padding: 10px 20px;
+      background: #1e1e2f;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .back-btn:hover {
+      background: #2a2a3f;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #f4f4f9;
+      border-radius: 20px;
+      padding: 10px 18px;
+      flex: 1;
+      max-width: 400px;
+    }
+    .search-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      width: 100%;
+      padding: 0 10px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: #1e1e2f;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2a2a3f;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #1e1e2f;
+    }
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-right: 8px;
+      transition: 0.2s;
+    }
+    .btn-edit {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    .btn-delete {
+      background: #ffebee;
+      color: #c62828;
+    }
+    .btn-edit:hover {
+      background: #bbdefb;
+    }
+    .btn-delete:hover {
+      background: #ffcdd2;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+    }
+    .modal-content h2 {
+      margin-bottom: 1.5rem;
+      color: #1e1e2f;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #2d2d3a;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1.5px solid #dde0e8;
+      border-radius: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: #4a4a6a;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .modal-actions .btn {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-sitemap"></i> 社团管理</h1>
+    <a href="admin.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i> 返回
+    </a>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="搜索社团...">
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <i class="fas fa-plus"></i> 添加社团
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>社团名称</th>
+            <th>类型</th>
+            <th>成员数</th>
+            <th>负责人</th>
+            <th>创建时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="clubTable">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal" id="clubModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">添加社团</h2>
+      <form id="clubForm">
+        <input type="hidden" id="clubId">
+        <div class="form-group">
+          <label>社团名称</label>
+          <input type="text" id="clubName" required>
+        </div>
+        <div class="form-group">
+          <label>类型</label>
+          <select id="clubType" required>
+            <option value="">请选择类型</option>
+            <option value="文艺">文艺</option>
+            <option value="体育">体育</option>
+            <option value="学术">学术</option>
+            <option value="科技">科技</option>
+            <option value="公益">公益</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>负责人</label>
+          <input type="text" id="clubLeader" required>
+        </div>
+        <div class="form-group">
+          <label>简介</label>
+          <textarea id="clubDesc" placeholder="社团简介"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeModal()">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="admin_data.js"></script>
+  <script>
+    const STORAGE_KEY = 'systemClubs';
+
+    function loadClubs() {
+      const clubs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const tbody = document.getElementById('clubTable');
+      tbody.innerHTML = '';
+
+      clubs.forEach(club => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${club.id}</td>
+          <td>${club.name}</td>
+          <td>${club.type}</td>
+          <td>${club.memberCount || 0}</td>
+          <td>${club.leader}</td>
+          <td>${new Date(club.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="action-btn btn-edit" onclick="editClub(${club.id})">
+              <i class="fas fa-edit"></i> 编辑
+            </button>
+            <button class="action-btn btn-delete" onclick="deleteClub(${club.id})">
+              <i class="fas fa-trash"></i> 删除
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = '添加社团';
+      document.getElementById('clubForm').reset();
+      document.getElementById('clubId').value = '';
+      document.getElementById('clubModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('clubModal').classList.remove('active');
+    }
+
+    function editClub(id) {
+      const clubs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const club = clubs.find(c => c.id === id);
+      if (club) {
+        document.getElementById('modalTitle').textContent = '编辑社团';
+        document.getElementById('clubId').value = club.id;
+        document.getElementById('clubName').value = club.name;
+        document.getElementById('clubType').value = club.type;
+        document.getElementById('clubLeader').value = club.leader;
+        document.getElementById('clubDesc').value = club.description || '';
+        document.getElementById('clubModal').classList.add('active');
+      }
+    }
+
+    function deleteClub(id) {
+      if (confirm('确定要删除该社团吗？')) {
+        let clubs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        clubs = clubs.filter(c => c.id !== id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(clubs));
+        loadClubs();
+      }
+    }
+
+    document.getElementById('clubForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const clubs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const clubId = document.getElementById('clubId').value;
+      
+      const clubData = {
+        id: clubId ? parseInt(clubId) : Date.now(),
+        name: document.getElementById('clubName').value,
+        type: document.getElementById('clubType').value,
+        leader: document.getElementById('clubLeader').value,
+        description: document.getElementById('clubDesc').value,
+        memberCount: clubId ? clubs.find(c => c.id === parseInt(clubId)).memberCount : 0,
+        createdAt: clubId ? clubs.find(c => c.id === parseInt(clubId)).createdAt : new Date().toISOString()
+      };
+
+      if (clubId) {
+        const index = clubs.findIndex(c => c.id === parseInt(clubId));
+        clubs[index] = clubData;
+      } else {
+        clubs.push(clubData);
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clubs));
+      closeModal();
+      loadClubs();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const search = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('#clubTable tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(search) ? '' : 'none';
+      });
+    });
+
+    loadClubs();
+  </script>
+</body>
+</html>
