@@ -6,7 +6,7 @@
   async function scanImages() {
     const images = [];
     
-    for (let i = 1; i <= 20; i++) {
+    for (let i = 1; i <= 5; i++) {
       const name = 'slide' + i;
       for (const ext of IMG_EXTENSIONS) {
         const path = IMG_BASE_PATH + name + ext;

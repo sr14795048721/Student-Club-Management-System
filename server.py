@@ -40,6 +40,14 @@ def init_db():
         expires_at TIMESTAMP NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id)
     )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS page_views (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        page TEXT NOT NULL,
+        visitor_id TEXT NOT NULL,
+        ip_address TEXT,
+        user_agent TEXT,
+        visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
     
     # 创建默认管理员
     c.execute("SELECT * FROM users WHERE username='admin'")
@@ -204,14 +212,105 @@ def user_data(user_id):
             json.dump(data, f, ensure_ascii=False, indent=2)
         return jsonify({'success': True})
 
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(DISTINCT visitor_id) FROM page_views WHERE page='/'")
+    total_views = c.fetchone()[0]
+    conn.close()
+    return jsonify({'success': True, 'views': total_views})
+
+@app.route('/api/admin/stats', methods=['GET'])
+def get_admin_stats():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # 用户统计
+    c.execute("SELECT COUNT(*) FROM users")
+    user_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM users WHERE status='active'")
+    active_users = c.fetchone()[0]
+    
+    # 访问统计
+    c.execute("SELECT COUNT(*) FROM page_views")
+    total_visits = c.fetchone()[0]
+    c.execute("SELECT COUNT(DISTINCT visitor_id) FROM page_views")
+    unique_visitors = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM page_views WHERE DATE(visited_at) = DATE('now')")
+    today_visits = c.fetchone()[0]
+    
+    # 会话统计
+    c.execute("SELECT COUNT(*) FROM sessions WHERE expires_at > datetime('now')")
+    active_sessions = c.fetchone()[0]
+    
+    # 数据库大小
+    import os
+    db_size = os.path.getsize(DB_PATH) / 1024 / 1024  # MB
+    
+    conn.close()
+    
+    # 系统信息
+    import psutil
+    import platform
+    
+    return jsonify({
+        'success': True,
+        'stats': {
+            'users': {
+                'total': user_count,
+                'active': active_users,
+                'inactive': user_count - active_users
+            },
+            'visits': {
+                'total': total_visits,
+                'unique': unique_visitors,
+                'today': today_visits
+            },
+            'sessions': {
+                'active': active_sessions
+            },
+            'system': {
+                'db_size': round(db_size, 2),
+                'cpu_percent': psutil.cpu_percent(interval=1),
+                'memory_percent': psutil.virtual_memory().percent,
+                'disk_percent': psutil.disk_usage('/').percent,
+                'platform': platform.system(),
+                'python_version': platform.python_version()
+            }
+        }
+    })
+
+def track_visit(page):
+    visitor_id = request.cookies.get('visitor_id')
+    if not visitor_id:
+        visitor_id = secrets.token_urlsafe(16)
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT INTO page_views (page, visitor_id, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+              (page, visitor_id, request.remote_addr, request.headers.get('User-Agent', '')))
+    conn.commit()
+    conn.close()
+    return visitor_id
+
 # 前端路由
 @app.route('/')
 def index():
+    visitor_id = track_visit('/')
     response = send_from_directory('.', 'index.html')
     response.headers['Content-Type'] = 'text/html; charset=utf-8'
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
+    response.set_cookie('visitor_id', visitor_id, max_age=365*24*60*60, httponly=True, samesite='Lax')
     return response
 
 @app.route('/login')
@@ -243,11 +342,23 @@ def home_page():
 
 @app.route('/page/<path:filename>')
 def serve_page(filename):
-    return send_from_directory('page', filename)
+    response = send_from_directory('page', filename)
+    if filename.endswith('.html'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
 
 @app.route('/image/<path:filename>')
 def serve_image(filename):
     return send_from_directory('image', filename)
+
+@app.route('/news/<path:filename>')
+def serve_news(filename):
+    response = send_from_directory('news', filename)
+    if filename.endswith('.html'):
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
 
 if __name__ == '__main__':
     init_db()

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
@@ -542,11 +542,11 @@
             
             setTimeout(() => {
               if (result.user.role === 'admin') {
-                window.location.href = '../user_system/admin/admin.html';
+                window.location.href = '/page/user_system/admin/admin.html';
               } else if (result.user.role === 'teacher') {
-                window.location.href = '../user_system/teacher/teacher.html';
+                window.location.href = '/page/user_system/teacher/teacher.html';
               } else {
-                window.location.href = '../user_system/student/student.html';
+                window.location.href = '/page/user_system/student/student.html';
               }
             }, 500);
           }

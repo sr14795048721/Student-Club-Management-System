@@ -31,6 +31,24 @@
       justify-content: space-between;
       align-items: center;
     }
+    .system-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .system-logo:hover { opacity: 0.8; }
+    .system-logo img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+    }
+    .system-logo span {
+      font-size: 1rem;
+      font-weight: 600;
+      color: white;
+    }
     .header-main {
       padding: 15px 0;
     }
@@ -249,10 +267,13 @@
   <header class="header">
     <div class="header-top">
       <div class="container">
-        <div>欢迎访问社团管理系统</div>
+        <div class="system-logo" onclick="navigateHome()">
+          <img src="/image/main/校徽.png" alt="校徽">
+          <span>社团管理系统</span>
+        </div>
         <div>
-          <i class="fas fa-phone"></i> 400-123-4567 | 
-          <i class="fas fa-envelope"></i> info@society.edu.cn
+          <i class="fas fa-phone"></i> 14795048721 | 
+          <i class="fas fa-envelope"></i> 1804457646@qq.com
         </div>
       </div>
     </div>
@@ -343,19 +364,44 @@
         </div>
         <div>
           <h4>联系我们</h4>
-          <p><i class="fas fa-map-marker-alt"></i> 上海市普陀区中山北路3663号</p>
-          <p><i class="fas fa-phone"></i> 400-123-4567</p>
-          <p><i class="fas fa-envelope"></i> info@society.edu.cn</p>
+          <p><i class="fas fa-map-marker-alt"></i> 固原市原州区</p>
+          <p><i class="fas fa-phone"></i> 14795048721</p>
+          <p><i class="fas fa-envelope"></i> 1804457646@qq.com</p>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2025 社团管理系统 版权所有 | 沪ICP备xxxxxxxx号</p>
+        <p>© 2025 社团管理系统 版权所有 | Development</p>
       </div>
     </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script>
+    function navigateHome() {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        fetch('/api/check-session', {
+          headers: { 'Authorization': token }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            const role = data.user.role;
+            window.location.href = role === 'admin' ? '/page/user_system/admin/admin.html' : 
+                                   role === 'teacher' ? '/page/user_system/teacher/' : 
+                                   '/page/user_system/student/';
+          } else {
+            window.location.href = '/';
+          }
+        })
+        .catch(() => {
+          window.location.href = '/';
+        });
+      } else {
+        window.location.href = '/';
+      }
+    }
+
     function loadConfig() {
       const config = JSON.parse(localStorage.getItem('homePageConfig') || '{}');
       
@@ -363,15 +409,16 @@
         document.getElementById('systemName').textContent = config.systemName;
       }
       
+      // 轮播图配置 - 使用image/main目录
       const banners = config.banners || [
-        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: 'https://via.placeholder.com/1200x500/5e2a84/ffffff?text=Banner+1' },
-        { title: '丰富多彩的社团活动', desc: '发现你的兴趣，结识志同道合的朋友', image: 'https://via.placeholder.com/1200x500/7b3fa0/ffffff?text=Banner+2' },
-        { title: '专业的管理平台', desc: '高效管理，轻松组织', image: 'https://via.placeholder.com/1200x500/9b5fc0/ffffff?text=Banner+3' }
+        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: '/image/main/banner1.jpg' },
+        { title: '丰富多彩的社团活动', desc: '发现你的兴趣，结识志同道合的朋友', image: '/image/main/banner2.jpg' },
+        { title: '专业的管理平台', desc: '高效管理，轻松组织', image: '/image/main/banner3.jpg' }
       ];
       
       const bannerSlides = document.getElementById('bannerSlides');
       bannerSlides.innerHTML = banners.map(b => `
-        <div class="swiper-slide" style="background-image:url('${b.image}')">
+        <div class="swiper-slide" style="background-image:url('${b.image}'); background-color:#5e2a84;">
           <div class="slide-content">
             <h2>${b.title}</h2>
             <p>${b.desc}</p>
@@ -386,26 +433,40 @@
         navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' }
       });
       
+      // 新闻配置
       const news = config.news || [
-        { title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与，各社团展现了独特魅力...', date: '2025-01-15', views: 1234 },
-        { title: '校园文化艺术节精彩纷呈', desc: '为期一周的文化艺术节展示了学生们的才华与创意，获得广泛好评...', date: '2025-01-10', views: 2156 },
-        { title: '社团管理系统全新升级', desc: '新版本增加了更多实用功能，提升用户体验，欢迎大家使用...', date: '2025-01-05', views: 3421 }
+        { id: 1, title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与，各社团展现了独特魅力...', date: '2025-01-15', views: 0 },
+        { id: 2, title: '校园文化艺术节精彩纷呈', desc: '为期一周的文化艺术节展示了学生们的才华与创意，获得广泛好评...', date: '2025-01-10', views: 0 },
+        { id: 3, title: '社团管理系统全新升级', desc: '新版本增加了更多实用功能，提升用户体验，欢迎大家使用...', date: '2025-01-05', views: 0 }
       ];
       
-      const newsGrid = document.getElementById('newsGrid');
-      newsGrid.innerHTML = news.map(n => `
-        <div class="news-card">
-          <img src="https://via.placeholder.com/400x200/5e2a84/ffffff?text=News" alt="${n.title}">
-          <div class="news-card-content">
-            <h3>${n.title}</h3>
-            <p>${n.desc}</p>
-            <div class="news-card-meta">
-              <span><i class="fas fa-calendar"></i> ${n.date}</span>
-              <span><i class="fas fa-eye"></i> ${n.views}</span>
+      // 加载真实浏览量
+      fetch('/api/stats')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            news.forEach(n => n.views = data.views);
+            renderNews();
+          }
+        })
+        .catch(() => renderNews());
+      
+      function renderNews() {
+        const newsGrid = document.getElementById('newsGrid');
+        newsGrid.innerHTML = news.map(n => `
+          <div class="news-card" onclick="location.href='/news/${n.id}.html'">
+            <img src="https://via.placeholder.com/400x200/5e2a84/ffffff?text=News" alt="${n.title}">
+            <div class="news-card-content">
+              <h3>${n.title}</h3>
+              <p>${n.desc}</p>
+              <div class="news-card-meta">
+                <span><i class="fas fa-calendar"></i> ${n.date}</span>
+                <span><i class="fas fa-eye"></i> ${n.views}</span>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     }
     
     window.addEventListener('load', loadConfig);

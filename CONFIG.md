@@ -75,3 +75,9 @@ python server.py
    - Token存储在localStorage
    - 会话有效期2小时
    - 自动检查会话状态
+
+4. **轮播图片**
+   - 图片位置：`image/log.image/`
+   - 命名格式：slide1.png, slide2.png...
+   - 当前只有slide1.png和slide2.png
+   - 404错误是正常的图片扫描行为

@@ -180,11 +180,15 @@
       document.getElementById('systemName').value = config.systemName || '社团管理系统';
       
       banners = config.banners || [
-        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: 'https://via.placeholder.com/1200x500/5e2a84/ffffff?text=Banner+1' }
+        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: '/image/main/banner1.jpg' },
+        { title: '丰富多彩的社团活动', desc: '发现你的兴趣，结识志同道合的朋友', image: '/image/main/banner2.jpg' },
+        { title: '专业的管理平台', desc: '高效管理，轻松组织', image: '/image/main/banner3.jpg' }
       ];
       
       news = config.news || [
-        { title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与...', date: '2025-01-15', views: 1234 }
+        { id: 1, title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与，各社团展现了独特魅力...', date: '2025-01-15', views: 0 },
+        { id: 2, title: '校园文化艺术节精彩纷呈', desc: '为期一周的文化艺术节展示了学生们的才华与创意，获得广泛好评...', date: '2025-01-10', views: 0 },
+        { id: 3, title: '社团管理系统全新升级', desc: '新版本增加了更多实用功能，提升用户体验，欢迎大家使用...', date: '2025-01-05', views: 0 }
       ];
       
       renderBanners();
@@ -213,7 +217,7 @@
     }
 
     function addBanner() {
-      banners.push({ title: '新轮播图', desc: '描述内容', image: 'https://via.placeholder.com/1200x500' });
+      banners.push({ title: '新轮播图', desc: '描述内容', image: '/image/main/banner' + (banners.length + 1) + '.jpg' });
       renderBanners();
     }
 
@@ -228,6 +232,10 @@
         <div class="news-item">
           <button class="remove-btn" onclick="removeNews(${i})"><i class="fas fa-times"></i></button>
           <div class="form-group">
+            <label>ID</label>
+            <input type="number" value="${n.id || i+1}" onchange="news[${i}].id=parseInt(this.value)">
+          </div>
+          <div class="form-group">
             <label>标题</label>
             <input type="text" value="${n.title}" onchange="news[${i}].title=this.value">
           </div>
@@ -240,15 +248,16 @@
             <input type="date" value="${n.date}" onchange="news[${i}].date=this.value">
           </div>
           <div class="form-group">
-            <label>浏览量</label>
-            <input type="number" value="${n.views}" onchange="news[${i}].views=this.value">
+            <label>浏览量（自动统计）</label>
+            <input type="number" value="${n.views}" disabled>
           </div>
         </div>
       `).join('');
     }
 
     function addNews() {
-      news.push({ title: '新闻标题', desc: '新闻描述', date: new Date().toISOString().split('T')[0], views: 0 });
+      const newId = news.length > 0 ? Math.max(...news.map(n => n.id || 0)) + 1 : 1;
+      news.push({ id: newId, title: '新闻标题', desc: '新闻描述', date: new Date().toISOString().split('T')[0], views: 0 });
       renderNews();
     }
 

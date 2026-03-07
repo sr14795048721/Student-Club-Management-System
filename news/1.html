@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2025年春季社团招新活动圆满结束 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f5f5f5; }
+    .header { background: #5e2a84; color: white; padding: 1rem 0; }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+    .back-btn { color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+    .back-btn:hover { opacity: 0.8; }
+    .article { background: white; margin: 2rem auto; padding: 3rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .article h1 { font-size: 2rem; margin-bottom: 1rem; color: #333; }
+    .article-meta { color: #999; font-size: 0.9rem; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
+    .article-meta span { margin-right: 20px; }
+    .article-content { line-height: 1.8; color: #555; font-size: 1.05rem; }
+    .article-content p { margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="container">
+      <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i> 返回首页</a>
+    </div>
+  </div>
+  
+  <div class="container">
+    <article class="article">
+      <h1>2025年春季社团招新活动圆满结束</h1>
+      <div class="article-meta">
+        <span><i class="fas fa-calendar"></i> 2025-01-15</span>
+        <span><i class="fas fa-user"></i> 管理员</span>
+        <span><i class="fas fa-eye"></i> <span id="views">0</span> 次浏览</span>
+      </div>
+      <div class="article-content">
+        <p>本次春季社团招新活动于2025年1月15日圆满结束。活动期间，各社团积极参与，展现了独特的魅力和风采。</p>
+        <p>本次招新活动吸引了超过500名新生参与，涵盖了文化、体育、科技、艺术等多个领域的社团。各社团通过精心准备的展示和互动活动，让新生们充分了解了社团的特色和活动内容。</p>
+        <p>活动现场气氛热烈，新生们积极咨询、踊跃报名。许多社团的报名人数超出预期，充分体现了同学们对社团活动的热情和期待。</p>
+        <p>学校领导对本次招新活动给予了高度评价，认为这是促进校园文化建设、丰富学生课余生活的重要举措。希望各社团能够继续发挥积极作用，为同学们提供更多展示才华、锻炼能力的平台。</p>
+      </div>
+    </article>
+  </div>
+
+  <script>
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('views').textContent = data.views;
+        }
+      });
+  </script>
+</body>
+</html>

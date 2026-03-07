@@ -144,7 +144,7 @@
 <body>
   <div class="header">
     <h1><i class="fas fa-user-shield"></i> 管理后台</h1>
-    <button class="logout-btn" onclick="location.href='../../log_system/login.main.html'">
+    <button class="logout-btn" onclick="location.href='/login'">
       <i class="fas fa-sign-out-alt"></i> 退出登录
     </button>
   </div>
@@ -154,29 +154,29 @@
       <div class="stat-card">
         <div class="stat-icon blue"><i class="fas fa-users"></i></div>
         <div class="stat-info">
-          <h3>156</h3>
+          <h3>0</h3>
           <p>用户总数</p>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon green"><i class="fas fa-user-friends"></i></div>
+        <div class="stat-icon green"><i class="fas fa-eye"></i></div>
         <div class="stat-info">
-          <h3>23</h3>
-          <p>社团数量</p>
+          <h3>0</h3>
+          <p>独立访客</p>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-icon orange"><i class="fas fa-calendar-day"></i></div>
         <div class="stat-info">
-          <h3>48</h3>
-          <p>活动总数</p>
+          <h3>0</h3>
+          <p>今日访问</p>
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon purple"><i class="fas fa-bell"></i></div>
+        <div class="stat-icon purple"><i class="fas fa-user-clock"></i></div>
         <div class="stat-info">
-          <h3>12</h3>
-          <p>待处理通知</p>
+          <h3>0</h3>
+          <p>在线会话</p>
         </div>
       </div>
     </div>
@@ -188,7 +188,12 @@
           <div class="menu-item" onclick="location.href='home_config.html'">
             <i class="fas fa-home"></i>
             <h3>主页配置</h3>
-            <p>配置首页内容与布局</p>
+            <p>配置首页轮播图与内容</p>
+          </div>
+          <div class="menu-item" onclick="location.href='news_manage.html'">
+            <i class="fas fa-newspaper"></i>
+            <h3>新闻管理</h3>
+            <p>管理系统新闻资讯</p>
           </div>
           <div class="menu-item" onclick="location.href='user_manage.html'">
             <i class="fas fa-users-cog"></i>
@@ -205,19 +210,14 @@
             <h3>活动管理</h3>
             <p>管理社团活动与报名</p>
           </div>
-          <div class="menu-item" onclick="alert('通知管理功能开发中')">
-            <i class="fas fa-bullhorn"></i>
-            <h3>通知管理</h3>
-            <p>发布系统通知公告</p>
+          <div class="menu-item" onclick="location.href='data_statistics.html'">
+            <i class="fas fa-chart-bar"></i>
+            <h3>数据统计</h3>
+            <p>查看系统数据报表</p>
           </div>
-          <div class="menu-item" onclick="alert('权限管理功能开发中')">
-            <i class="fas fa-shield-alt"></i>
-            <h3>权限管理</h3>
-            <p>配置用户角色权限</p>
-          </div>
-          <div class="menu-item" onclick="location.href='../../log_system/login.image.html'">
+          <div class="menu-item" onclick="location.href='/page/log_system/login.image.html'">
             <i class="fas fa-images"></i>
-            <h3>轮播配置</h3>
+            <h3>登录轮播</h3>
             <p>设置登录页轮播图</p>
           </div>
           <div class="menu-item" onclick="location.href='system_settings.html'">
@@ -225,10 +225,10 @@
             <h3>系统设置</h3>
             <p>配置系统参数</p>
           </div>
-          <div class="menu-item" onclick="location.href='data_statistics.html'">
-            <i class="fas fa-chart-bar"></i>
-            <h3>数据统计</h3>
-            <p>查看系统数据报表</p>
+          <div class="menu-item" onclick="alert('权限管理功能开发中')">
+            <i class="fas fa-shield-alt"></i>
+            <h3>权限管理</h3>
+            <p>配置用户角色权限</p>
           </div>
         </div>
       </div>
@@ -240,19 +240,68 @@
     </div>
   </div>
 
-  <script src="admin_data.js"></script>
+  <script src="/page/user_system/admin/admin_data.js"></script>
   <script>
     // 加载统计数据
     window.addEventListener('load', () => {
-      const stats = AdminData.getStats();
-      
-      document.querySelectorAll('.stat-info h3')[0].textContent = stats.userCount;
-      document.querySelectorAll('.stat-info h3')[1].textContent = stats.clubCount;
-      document.querySelectorAll('.stat-info h3')[2].textContent = stats.activityCount;
-      document.querySelectorAll('.stat-info h3')[3].textContent = stats.notificationCount;
-      
+      loadAdminStats();
       renderMiniCalendar();
+      setInterval(loadAdminStats, 30000); // 每30秒刷新
     });
+
+    function loadAdminStats() {
+      fetch('/api/admin/stats', {
+        headers: {
+          'Authorization': localStorage.getItem('authToken')
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const stats = data.stats;
+          document.querySelectorAll('.stat-info h3')[0].textContent = stats.users.total;
+          document.querySelectorAll('.stat-info h3')[1].textContent = stats.visits.unique;
+          document.querySelectorAll('.stat-info h3')[2].textContent = stats.visits.today;
+          document.querySelectorAll('.stat-info h3')[3].textContent = stats.sessions.active;
+          
+          // 更新描述
+          document.querySelectorAll('.stat-info p')[0].textContent = `用户总数 (活跃: ${stats.users.active})`;
+          document.querySelectorAll('.stat-info p')[1].textContent = `独立访客 (总访问: ${stats.visits.total})`;
+          document.querySelectorAll('.stat-info p')[2].textContent = '今日访问量';
+          document.querySelectorAll('.stat-info p')[3].textContent = '在线会话';
+          
+          // 显示系统信息
+          showSystemInfo(stats.system);
+        }
+      })
+      .catch(err => console.error('加载统计数据失败:', err));
+    }
+
+    function showSystemInfo(system) {
+      const info = `
+        <div style="padding:1rem;background:#f8f9fa;border-radius:12px;margin-top:1rem;">
+          <h3 style="margin-bottom:1rem;color:#1e1e2f;"><i class="fas fa-server"></i> 服务器信息</h3>
+          <div style="display:grid;gap:0.5rem;font-size:0.9rem;">
+            <div><strong>CPU使用率:</strong> ${system.cpu_percent}%</div>
+            <div><strong>内存使用率:</strong> ${system.memory_percent}%</div>
+            <div><strong>磁盘使用率:</strong> ${system.disk_percent}%</div>
+            <div><strong>数据库大小:</strong> ${system.db_size} MB</div>
+            <div><strong>系统平台:</strong> ${system.platform}</div>
+            <div><strong>Python版本:</strong> ${system.python_version}</div>
+          </div>
+        </div>
+      `;
+      
+      const calendar = document.getElementById('miniCalendar');
+      if (calendar && !document.getElementById('systemInfo')) {
+        const div = document.createElement('div');
+        div.id = 'systemInfo';
+        div.innerHTML = info;
+        calendar.parentElement.appendChild(div);
+      } else if (document.getElementById('systemInfo')) {
+        document.getElementById('systemInfo').innerHTML = info;
+      }
+    }
 
     function renderMiniCalendar() {
       const activities = JSON.parse(localStorage.getItem('systemActivities') || '[]');
