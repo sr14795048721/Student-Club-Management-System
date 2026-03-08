@@ -81,6 +81,14 @@
       border-radius: 8px;
       cursor: pointer;
     }
+    .banner-item select {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
     .news-item {
       background: #f8f9fa;
       padding: 15px;
@@ -170,6 +178,7 @@
     <i class="fas fa-check-circle"></i> 配置已保存
   </div>
 
+  <script src="/page/auth-check.js"></script>
   <script>
     let banners = [];
     let news = [];
@@ -179,11 +188,25 @@
       
       document.getElementById('systemName').value = config.systemName || '社团管理系统';
       
-      banners = config.banners || [
-        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: '/image/main/banner1.jpg' },
-        { title: '丰富多彩的社团活动', desc: '发现你的兴趣，结识志同道合的朋友', image: '/image/main/banner2.jpg' },
-        { title: '专业的管理平台', desc: '高效管理，轻松组织', image: '/image/main/banner3.jpg' }
-      ];
+      fetch('/api/banners')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.banners.length > 0) {
+            banners = data.banners;
+          } else {
+            banners = config.banners || [
+              { type: 'image', title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', src: '/image/main/banner1.jpg' },
+              { type: 'video', src: '/image/main/banner.mp4', poster: '/image/main/banner2.jpg' },
+              { type: 'image', title: '专业的管理平台', desc: '高效管理，轻松组织', src: '/image/main/banner3.jpg' }
+            ];
+          }
+          renderBanners();
+        })
+        .catch(err => {
+          console.error('加载轮播图失败:', err);
+          banners = config.banners || [];
+          renderBanners();
+        });
       
       news = config.news || [
         { id: 1, title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与，各社团展现了独特魅力...', date: '2025-01-15', views: 0 },
@@ -191,7 +214,6 @@
         { id: 3, title: '社团管理系统全新升级', desc: '新版本增加了更多实用功能，提升用户体验，欢迎大家使用...', date: '2025-01-05', views: 0 }
       ];
       
-      renderBanners();
       renderNews();
     }
 
@@ -202,22 +224,60 @@
           <button class="remove-btn" onclick="removeBanner(${i})"><i class="fas fa-times"></i></button>
           <div class="form-group">
             <label>标题</label>
-            <input type="text" value="${b.title}" onchange="banners[${i}].title=this.value">
+            <input type="text" value="${b.title || ''}" onchange="banners[${i}].title=this.value">
           </div>
           <div class="form-group">
             <label>描述</label>
-            <input type="text" value="${b.desc}" onchange="banners[${i}].desc=this.value">
+            <input type="text" value="${b.desc || ''}" onchange="banners[${i}].desc=this.value">
           </div>
           <div class="form-group">
-            <label>图片URL</label>
-            <input type="text" value="${b.image}" onchange="banners[${i}].image=this.value">
+            <label>类型</label>
+            <select onchange="banners[${i}].type=this.value;renderBanners()">
+              <option value="image" ${b.type === 'image' ? 'selected' : ''}>图片</option>
+              <option value="video" ${b.type === 'video' ? 'selected' : ''}>视频</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>${b.type === 'video' ? '视频文件' : '图片文件'}</label>
+            <input type="file" accept="${b.type === 'video' ? 'video/*' : 'image/*'}" onchange="uploadBanner(this, ${i})">
+            ${b.src ? `<img src="${b.src}" style="max-width:200px;margin-top:10px;border-radius:8px;" onerror="this.style.display='none'">` : ''}
           </div>
         </div>
       `).join('');
     }
 
+    async function uploadBanner(input, index) {
+      if (!input.files || !input.files[0]) return;
+      
+      const formData = new FormData();
+      formData.append('file', input.files[0]);
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Authorization': token },
+          body: formData
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          banners[index].src = data.url;
+          if (banners[index].type === 'video') {
+            banners[index].poster = data.url.replace(/\.[^.]+$/, '.jpg');
+          }
+          renderBanners();
+          alert('上传成功');
+        } else {
+          alert('上传失败');
+        }
+      } catch (err) {
+        alert('上传失败: ' + err.message);
+      }
+    }
+
     function addBanner() {
-      banners.push({ title: '新轮播图', desc: '描述内容', image: '/image/main/banner' + (banners.length + 1) + '.jpg' });
+      banners.push({ type: 'image', title: '新轮播图', desc: '描述内容', src: '' });
       renderBanners();
     }
 
@@ -275,9 +335,20 @@
       
       localStorage.setItem('homePageConfig', JSON.stringify(config));
       
-      const msg = document.getElementById('successMsg');
-      msg.style.display = 'block';
-      setTimeout(() => { msg.style.display = 'none'; }, 2000);
+      fetch('/api/banners', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('authToken')
+        },
+        body: JSON.stringify({ banners })
+      }).then(res => res.json()).then(data => {
+        if (data.success) {
+          const msg = document.getElementById('successMsg');
+          msg.style.display = 'block';
+          setTimeout(() => { msg.style.display = 'none'; }, 2000);
+        }
+      }).catch(err => console.error('保存失败:', err));
     }
 
     function previewHome() {

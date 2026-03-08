@@ -1,321 +1,309 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>社团管理系统 - 首页</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="renderer" content="webkit">
+  <title>社团管理系统</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Microsoft YaHei', Arial, sans-serif; }
+    body { font-family: "Microsoft YaHei", sans-serif; color: #333; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; }
     
-    .header {
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    /* 顶部栏 */
+    .top-bar { background: #8B1A1A; color: white; font-size: 13px; padding: 8px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .top-bar a { color: white; text-decoration: none; margin-left: 20px; }
+    .top-bar .header-link a { margin: 0 8px; }
+    .top-bar .header-link span { color: rgba(255,255,255,0.3); margin: 0 4px; }
+    
+    /* 导航栏 - 固定顶部横幅下方 */
+    .nav-bar { 
+      background: rgba(139,26,26,0); 
+      box-shadow: none;
+      position: fixed; 
+      top: 34px;
+      left: 0; 
+      right: 0;
+      z-index: 50;
+      transition: all 0.4s ease;
+      margin-top: 0;
     }
-    .header-top {
-      background: linear-gradient(135deg, #5e2a84 0%, #7b3fa0 100%);
-      color: white;
-      padding: 8px 0;
-      font-size: 0.85rem;
+    .nav-bar.scrolled {
+      background: #8B1A1A;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
-    .header-top .container {
-      max-width: 1200px;
+    .nav-bar .nav-container {
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .system-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .system-logo:hover { opacity: 0.8; }
-    .system-logo img {
-      width: 70px;
-      height: 70px;
-      object-fit: contain;
-    }
-    .system-logo span {
-      font-size: 1rem;
-      font-weight: 600;
-      color: white;
-    }
-    .header-main {
-      padding: 15px 0;
-    }
-    .header-main .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #5e2a84;
-    }
-    .logo-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, #5e2a84, #7b3fa0);
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 1.5rem;
+      padding: 15px 20px;
+      gap: 0;
     }
-    .nav {
-      display: flex;
-      gap: 30px;
+    .nav-bar .nav-list { 
+      display: flex; 
+      align-items: center;
+      list-style: none; 
+      margin: 0; 
+      padding: 0;
+      gap: 0;
     }
-    .nav a {
-      color: #333;
+    .nav-bar .nav-list li { margin: 0; }
+    .nav-bar .nav-list a { 
+      color: white; 
+      padding: 20px 40px; 
+      display: block; 
+      font-size: 17px; 
+      transition: all 0.3s; 
       text-decoration: none;
-      font-weight: 500;
-      transition: 0.3s;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      white-space: nowrap;
     }
-    .nav a:hover { color: #5e2a84; }
-    .login-btn {
-      padding: 8px 24px;
-      background: #5e2a84;
-      color: white;
-      border: none;
-      border-radius: 20px;
+    .nav-bar .nav-list a:hover { background: rgba(165,42,42,0.5); }
+    .nav-bar .logo-nav {
       cursor: pointer;
-      transition: 0.3s;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
     }
-    .login-btn:hover { background: #7b3fa0; }
+    .nav-bar .logo-nav img {
+      height: 80px;
+      width: auto;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+      transition: transform 0.3s;
+    }
+    .nav-bar .logo-nav:hover img { transform: scale(1.05); }
     
-    .banner {
-      position: relative;
-      height: 500px;
+    /* 轮播区域 - 全屏 */
+    .banner-box { position: relative; overflow: hidden; background: #1a1a1a; }
+    .banner { height: 100vh; min-height: 600px; position: relative; }
+    .banner-wrapper { width: 100%; height: 100%; }
+    .banner-list { list-style: none; margin: 0; padding: 0; width: 100%; height: 100%; position: relative; }
+    .banner-list li { position: absolute; width: 100%; height: 100%; opacity: 0; transition: opacity 1s ease; }
+    .banner-list li.active { opacity: 1; z-index: 2; }
+    .banner-list li img, .banner-list li video { width: 100%; height: 100%; object-fit: cover; }
+    .slide-content { 
+      position: absolute; 
+      bottom: 120px; 
+      left: 0; 
+      right: 0; 
+      text-align: center; 
+      color: white; 
+      z-index: 5; 
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+      animation: fadeInUp 1s ease;
     }
-    .swiper { width: 100%; height: 100%; }
-    .swiper-slide {
-      background-size: cover;
-      background-position: center;
-      position: relative;
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .swiper-slide::after {
+    .slide-content h2 { font-size: 52px; font-weight: 700; margin-bottom: 15px; letter-spacing: 2px; }
+    .slide-content p { font-size: 22px; opacity: 0.95; letter-spacing: 1px; }
+    .banner-controls a { display: none; }
+    .banner-dots { 
+      position: absolute; 
+      bottom: 40px; 
+      left: 50%; 
+      transform: translateX(-50%); 
+      display: flex; 
+      gap: 12px; 
+      z-index: 20; 
+    }
+    .banner-dots span { 
+      width: 14px; 
+      height: 14px; 
+      background: rgba(255,255,255,0.5); 
+      border-radius: 50%; 
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .banner-dots span:hover { background: rgba(255,255,255,0.8); transform: scale(1.2); }
+    .banner-dots span.active { background: #8B1A1A; width: 45px; border-radius: 7px; }
+    
+    /* 板块标题 */
+    .section { padding: 60px 0; }
+    .title-wrapper { margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+    .title-wrapper .tt-box { display: inline-block; border-left: 5px solid #8B1A1A; padding-left: 15px; }
+    .title-wrapper .tt-box span { font-size: 30px; font-weight: 700; color: #333; margin-right: 12px; }
+    .title-wrapper .tt-box font { color: #999; font-size: 16px; letter-spacing: 1px; }
+    .title-wrapper .tt-more { float: right; margin-top: 15px; color: #8B1A1A; font-weight: 600; transition: all 0.3s; }
+    .title-wrapper .tt-more:hover { color: #A52A2A; transform: translateX(5px); }
+    
+    /* 新闻区域 */
+    .news-left { padding-right: 10px; }
+    .news-right { padding-left: 10px; }
+    .img-slick-item { position: relative; border-radius: 8px; overflow: hidden; }
+    .img-slick-item img { width: 100%; height: 360px; object-fit: cover; }
+    .img-slick-bottom { 
+      position: absolute; 
+      bottom: 0; 
+      left: 0; 
+      right: 0; 
+      background: linear-gradient(transparent, rgba(0,0,0,0.85)); 
+      color: white; 
+      padding: 30px 20px 20px; 
+    }
+    .img-slick-date { font-size: 14px; opacity: 0.9; margin-bottom: 8px; }
+    .img-slick-tt { font-size: 22px; font-weight: 600; }
+    .img-news-list { list-style: none; padding: 0; margin: 0; background: white; border-radius: 8px; box-shadow: 0 3px 15px rgba(0,0,0,0.08); }
+    .img-news-list li { border-bottom: 1px solid #f0f0f0; }
+    .img-news-list li:last-child { border-bottom: none; }
+    .img-news-list a { display: flex; align-items: center; padding: 18px 20px; color: #333; text-decoration: none; transition: all 0.3s; }
+    .img-news-list a:hover { background: #f9f9f9; transform: translateX(5px); }
+    .img-news-date { 
+      background: #8B1A1A; 
+      color: white; 
+      text-align: center; 
+      width: 65px; 
+      padding: 10px 0; 
+      border-radius: 6px; 
+      margin-right: 18px; 
+      flex-shrink: 0; 
+      line-height: 1.3; 
+    }
+    .img-news-date span { font-size: 22px; font-weight: bold; display: block; }
+    .img-news-tt { font-size: 16px; font-weight: 500; }
+    
+    /* 快捷入口 */
+    .quick-links { display: grid; grid-template-columns: repeat(4,1fr); gap: 30px; margin-top: 25px; }
+    .quick-link { 
+      background: white; 
+      border-radius: 10px; 
+      padding: 40px 20px 30px; 
+      text-align: center; 
+      box-shadow: 0 5px 20px rgba(0,0,0,0.06); 
+      transition: all 0.4s; 
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .quick-link::before {
       content: '';
       position: absolute;
       top: 0;
-      left: 0;
+      left: -100%;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.3);
+      background: linear-gradient(90deg, transparent, rgba(139,26,26,0.05), transparent);
+      transition: left 0.5s;
     }
-    .slide-content {
-      position: absolute;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      text-align: center;
-      z-index: 10;
-      width: 80%;
-    }
-    .slide-content h2 {
-      font-size: 2.5rem;
-      margin-bottom: 15px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-    .slide-content p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
+    .quick-link:hover::before { left: 100%; }
+    .quick-link:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(139,26,26,0.2); }
+    .quick-link i { font-size: 52px; color: #8B1A1A; margin-bottom: 18px; transition: transform 0.3s; }
+    .quick-link:hover i { transform: scale(1.1) rotate(5deg); }
+    .quick-link h3 { font-size: 22px; font-weight: 600; margin-bottom: 10px; }
+    .quick-link p { color: #777; font-size: 14px; margin: 0; }
     
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    /* 底部 */
+    .footer { background: #2c2c2c; color: #aaa; padding: 50px 0 0; margin-top: 60px; }
+    .footer-content { display: grid; grid-template-columns: repeat(4,1fr); gap: 35px; margin-bottom: 35px; }
+    .footer h4 { color: #8B1A1A; font-size: 19px; margin-bottom: 20px; border-left: 4px solid #8B1A1A; padding-left: 12px; font-weight: 600; }
+    .footer a { color: #aaa; text-decoration: none; display: block; margin-bottom: 10px; font-size: 14px; transition: all 0.3s; }
+    .footer a:hover { color: white; padding-left: 5px; }
+    .footer p { font-size: 14px; margin-bottom: 10px; }
+    .footer-bottom { border-top: 1px solid #444; padding: 25px 0; text-align: center; color: #888; font-size: 13px; }
     
-    .section {
-      padding: 60px 0;
-    }
-    .section-title {
-      text-align: center;
-      font-size: 2rem;
-      color: #333;
-      margin-bottom: 40px;
-      position: relative;
-    }
-    .section-title::after {
-      content: '';
-      width: 60px;
-      height: 3px;
-      background: #5e2a84;
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    
-    .news-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 30px;
-    }
-    .news-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: 0.3s;
-      cursor: pointer;
-    }
-    .news-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-    .news-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-    .news-card-content {
-      padding: 20px;
-    }
-    .news-card h3 {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-      color: #333;
-    }
-    .news-card p {
-      color: #666;
-      font-size: 0.9rem;
-      line-height: 1.6;
-    }
-    .news-card-meta {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-      font-size: 0.85rem;
-      color: #999;
-    }
-    
-    .quick-links {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-    .quick-link {
-      background: linear-gradient(135deg, #5e2a84, #7b3fa0);
-      color: white;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .quick-link:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(94,42,132,0.3);
-    }
-    .quick-link i {
-      font-size: 3rem;
-      margin-bottom: 15px;
-    }
-    .quick-link h3 {
-      font-size: 1.3rem;
-      margin-bottom: 10px;
-    }
-    
-    .footer {
-      background: #2c2c2c;
-      color: white;
-      padding: 40px 0 20px;
-    }
-    .footer-content {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-      margin-bottom: 30px;
-    }
-    .footer h4 {
-      margin-bottom: 15px;
-      color: #5e2a84;
-    }
-    .footer a {
-      color: #ccc;
-      text-decoration: none;
-      display: block;
-      margin-bottom: 8px;
-    }
-    .footer a:hover { color: white; }
-    .footer-bottom {
-      text-align: center;
-      padding-top: 20px;
-      border-top: 1px solid #444;
-      color: #999;
+    @media (max-width: 768px) {
+      .banner { height: 70vh; min-height: 500px; }
+      .slide-content { bottom: 80px; }
+      .slide-content h2 { font-size: 32px; }
+      .slide-content p { font-size: 16px; }
+      .quick-links { grid-template-columns: 1fr 1fr; gap: 20px; }
+      .news-left, .news-right { padding: 0; margin-bottom: 20px; }
+      .top-bar { font-size: 11px; padding: 5px 0; }
+      .nav-bar { top: 28px; }
+      .nav-bar .nav-container { padding: 10px 15px; }
+      .nav-bar .nav-list a { padding: 15px 20px; font-size: 14px; }
+      .nav-bar .logo-nav { padding: 0 15px; }
+      .nav-bar .logo-nav img { max-width: 80px; max-height: 80px; }
+      .footer-content { grid-template-columns: 1fr; gap: 25px; }
     }
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="header-top">
-      <div class="container">
-        <div class="system-logo" onclick="navigateHome()">
-          <img src="/image/main/校徽.png" alt="校徽">
-          <span>社团管理系统</span>
+  <!-- 顶部栏 -->
+  <div class="top-bar">
+    <div class="container clearfix">
+      <div class="pull-left header-link">
+        <i class="fas fa-phone"></i> 14795048721
+        <span>|</span>
+        <i class="fas fa-envelope"></i> 1804457646@qq.com
+      </div>
+      <div class="pull-right header-link">
+        <a href="/login"><i class="fas fa-sign-in-alt"></i> 登录</a>
+        <span>|</span>
+        <a href="#">一站式服务</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导航栏 -->
+  <nav class="nav-bar" id="navBar">
+    <div class="nav-container">
+      <ul class="nav-list">
+        <li><a href="#news">新闻资讯</a></li>
+        <li><a href="#clubs">社团风采</a></li>
+      </ul>
+      <a href="#top" class="logo-nav" id="logoNav">
+        <img src="/image/main/校徽.png" alt="校徽" onerror="this.src='https://via.placeholder.com/120x120/8B1A1A/ffffff?text=校徽'">
+      </a>
+      <ul class="nav-list">
+        <li><a href="#activities">活动中心</a></li>
+        <li><a href="#about">关于我们</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 轮播图 全屏 -->
+  <div class="banner-box">
+    <section class="banner">
+      <div class="banner-wrapper">
+        <ul class="banner-list" id="bannerSlides"></ul>
+        <div class="banner-controls">
+          <a class="banner-prev"></a>
+          <a class="banner-next"></a>
         </div>
-        <div>
-          <i class="fas fa-phone"></i> 14795048721 | 
-          <i class="fas fa-envelope"></i> 1804457646@qq.com
+        <div class="banner-dots" id="bannerDots"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 新闻资讯区块 -->
+  <section class="section" style="background:#fff;">
+    <div class="container">
+      <div class="title-wrapper clearfix wow fadeInUp">
+        <div class="pull-left tt-box">
+          <span>社团要闻</span><font>Club News</font>
+        </div>
+        <a class="tt-more" href="#news">查看更多 <i class="fa fa-angle-right"></i></a>
+      </div>
+      <div class="row">
+        <div class="col-md-7 news-left wow fadeInUp">
+          <div class="img-slick" id="newsSlick"></div>
+        </div>
+        <div class="col-md-5 news-right wow fadeInUp">
+          <ul class="img-news-list" id="newsList"></ul>
         </div>
       </div>
     </div>
-    <div class="header-main">
-      <div class="container">
-        <div class="logo">
-          <div class="logo-icon"><i class="fas fa-university"></i></div>
-          <span id="systemName">社团管理系统</span>
+  </section>
+
+  <!-- 快捷入口 -->
+  <section class="section" style="background:#f5f5f5;">
+    <div class="container">
+      <div class="title-wrapper clearfix wow fadeInUp">
+        <div class="pull-left tt-box">
+          <span>快捷入口</span><font>Quick Links</font>
         </div>
-        <nav class="nav">
-          <a href="#home">首页</a>
-          <a href="#news">新闻资讯</a>
-          <a href="#clubs">社团风采</a>
-          <a href="#activities">活动中心</a>
-          <a href="#about">关于我们</a>
-        </nav>
-        <button class="login-btn" onclick="location.href='/login'">
-          <i class="fas fa-sign-in-alt"></i> 登录
-        </button>
+        <a class="tt-more" href="#">全部 <i class="fa fa-angle-right"></i></a>
       </div>
-    </div>
-  </header>
-
-  <section class="banner">
-    <div class="swiper bannerSwiper">
-      <div class="swiper-wrapper" id="bannerSlides"></div>
-      <div class="swiper-pagination"></div>
-      <div class="swiper-button-prev"></div>
-      <div class="swiper-button-next"></div>
-    </div>
-  </section>
-
-  <section class="section" style="background:#f8f9fa;">
-    <div class="container">
-      <h2 class="section-title">新闻资讯</h2>
-      <div class="news-grid" id="newsGrid"></div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <h2 class="section-title">快捷入口</h2>
       <div class="quick-links">
         <div class="quick-link" onclick="location.href='/login'">
           <i class="fas fa-user-circle"></i>
@@ -341,6 +329,7 @@
     </div>
   </section>
 
+  <!-- 底部 -->
   <footer class="footer">
     <div class="container">
       <div class="footer-content">
@@ -370,105 +359,146 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2025 社团管理系统 版权所有 | Development</p>
+        <p>© 2025 社团管理系统 版权所有</p>
+        <p><a href="#" style="color:#888;">DEVELOPMENT</a><a href="#" style="color:#888;">南风知我意</a></p>
       </div>
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.min.js"></script>
   <script>
-    function navigateHome() {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        fetch('/api/check-session', {
-          headers: { 'Authorization': token }
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.user) {
-            const role = data.user.role;
-            window.location.href = role === 'admin' ? '/page/user_system/admin/admin.html' : 
-                                   role === 'teacher' ? '/page/user_system/teacher/' : 
-                                   '/page/user_system/student/';
-          } else {
-            window.location.href = '/';
-          }
-        })
-        .catch(() => {
-          window.location.href = '/';
-        });
+    new WOW().init();
+
+    // 滚动时导航栏背景变化
+    window.addEventListener('scroll', function() {
+      const navBar = document.getElementById('navBar');
+      if (window.scrollY > 100) {
+        navBar.classList.add('scrolled');
       } else {
-        window.location.href = '/';
+        navBar.classList.remove('scrolled');
       }
-    }
+    });
+
+    // 点击校徽滚动到顶部
+    document.getElementById('logoNav').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     function loadConfig() {
       const config = JSON.parse(localStorage.getItem('homePageConfig') || '{}');
-      
-      if (config.systemName) {
-        document.getElementById('systemName').textContent = config.systemName;
-      }
-      
-      // 轮播图配置 - 使用image/main目录
-      const banners = config.banners || [
-        { title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', image: '/image/main/banner1.jpg' },
-        { title: '丰富多彩的社团活动', desc: '发现你的兴趣，结识志同道合的朋友', image: '/image/main/banner2.jpg' },
-        { title: '专业的管理平台', desc: '高效管理，轻松组织', image: '/image/main/banner3.jpg' }
-      ];
-      
-      const bannerSlides = document.getElementById('bannerSlides');
-      bannerSlides.innerHTML = banners.map(b => `
-        <div class="swiper-slide" style="background-image:url('${b.image}'); background-color:#5e2a84;">
-          <div class="slide-content">
-            <h2>${b.title}</h2>
-            <p>${b.desc}</p>
-          </div>
-        </div>
-      `).join('');
-      
-      new Swiper('.bannerSwiper', {
-        loop: true,
-        autoplay: { delay: 5000 },
-        pagination: { el: '.swiper-pagination', clickable: true },
-        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' }
-      });
-      
-      // 新闻配置
-      const news = config.news || [
-        { id: 1, title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与，各社团展现了独特魅力...', date: '2025-01-15', views: 0 },
-        { id: 2, title: '校园文化艺术节精彩纷呈', desc: '为期一周的文化艺术节展示了学生们的才华与创意，获得广泛好评...', date: '2025-01-10', views: 0 },
-        { id: 3, title: '社团管理系统全新升级', desc: '新版本增加了更多实用功能，提升用户体验，欢迎大家使用...', date: '2025-01-05', views: 0 }
-      ];
-      
-      // 加载真实浏览量
-      fetch('/api/stats')
+
+      fetch('/api/banners')
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            news.forEach(n => n.views = data.views);
-            renderNews();
+          const banners = (data.success && data.banners.length > 0) ? data.banners : [
+            { type: 'image', title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', src: '/image/main/banner1.jpg' },
+            { type: 'video', src: '/image/main/banner.mp4', poster: '/image/main/banner2.jpg' },
+            { type: 'image', title: '专业的管理平台', desc: '高效管理，轻松组织', src: '/image/main/banner3.jpg' }
+          ];
+
+          const slidesHtml = banners.map((b, i) => {
+        if (b.type === 'video') {
+          return `<li class="${i === 0 ? 'active' : ''}">
+            <video src="${b.src}" ${b.poster ? `poster="${b.poster}"` : ''} muted></video>
+          </li>`;
+        }
+        return `<li class="${i === 0 ? 'active' : ''}">
+          <img src="${b.src}" alt="${b.title || ''}" onerror="this.src='https://via.placeholder.com/1920x1080/8B1A1A/ffffff?text=Banner'">
+          ${b.title ? `<div class="slide-content"><h2>${b.title}</h2><p>${b.desc || ''}</p></div>` : ''}
+        </li>`;
+      }).join('');
+
+      document.getElementById('bannerSlides').innerHTML = slidesHtml;
+      document.getElementById('bannerDots').innerHTML = banners.map((_, i) => 
+        `<span class="${i === 0 ? 'active' : ''}" data-index="${i}"></span>`
+      ).join('');
+
+      let currentIndex = 0;
+      let autoplayTimer = null;
+      const slides = document.querySelectorAll('.banner-list li');
+      const dots = document.querySelectorAll('.banner-dots span');
+      const videos = Array.from(slides).map(s => s.querySelector('video'));
+
+      function goToSlide(index) {
+        slides[currentIndex].classList.remove('active');
+        dots[currentIndex].classList.remove('active');
+        if (videos[currentIndex]) videos[currentIndex].pause();
+
+        currentIndex = index;
+        slides[currentIndex].classList.add('active');
+        dots[currentIndex].classList.add('active');
+
+        if (videos[currentIndex]) {
+          clearInterval(autoplayTimer);
+          videos[currentIndex].currentTime = 0;
+          videos[currentIndex].play();
+          videos[currentIndex].onended = () => {
+            goToSlide((currentIndex + 1) % banners.length);
+          };
+        } else {
+          startAutoplay();
+        }
+      }
+
+      function startAutoplay() {
+        clearInterval(autoplayTimer);
+        autoplayTimer = setInterval(() => goToSlide((currentIndex + 1) % banners.length), 5000);
+      }
+
+      document.querySelector('.banner-prev').onclick = () => goToSlide((currentIndex - 1 + banners.length) % banners.length);
+      document.querySelector('.banner-next').onclick = () => goToSlide((currentIndex + 1) % banners.length);
+      dots.forEach(dot => dot.onclick = function() { goToSlide(parseInt(this.dataset.index)); });
+
+          if (videos[0]) videos[0].play(); else startAutoplay();
+        })
+        .catch(err => console.error('加载轮播图失败:', err));
+
+      // 从API加载新闻
+      fetch('/api/news')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.news.length > 0) {
+            const news = data.news;
+            
+            const slickHtml = news.slice(0,3).map(n => `
+              <div class="img-slick-item">
+                <img src="${n.cover_image || 'https://via.placeholder.com/700x360/8B1A1A/ffffff?text=社团新闻'}" alt="${n.title}" onerror="this.src='https://via.placeholder.com/700x360/8B1A1A/ffffff?text=社团新闻'">
+                <div class="img-slick-bottom">
+                  <div class="img-slick-date">${n.publish_date}</div>
+                  <div class="img-slick-tt">${n.title}</div>
+                </div>
+              </div>
+            `).join('');
+            document.getElementById('newsSlick').innerHTML = slickHtml;
+
+            const listHtml = news.map(n => `
+              <li><a href="/news/${n.id}.html" target="_blank">
+                <div class="img-news-date"><span>${n.publish_date.slice(8,10)}</span>${n.publish_date.slice(5,7)}月</div>
+                <div class="img-news-tt">${n.title}</div>
+              </a></li>
+            `).join('');
+            document.getElementById('newsList').innerHTML = listHtml;
+
+            if ($('.img-slick').hasClass('slick-initialized')) $('.img-slick').slick('unslick');
+            $('.img-slick').slick({
+              infinite: true,
+              slidesToShow: 1,
+              slidesToScroll: 1,
+              autoplay: true,
+              autoplaySpeed: 4000,
+              arrows: true,
+              dots: true,
+              fade: true
+            });
           }
         })
-        .catch(() => renderNews());
-      
-      function renderNews() {
-        const newsGrid = document.getElementById('newsGrid');
-        newsGrid.innerHTML = news.map(n => `
-          <div class="news-card" onclick="location.href='/news/${n.id}.html'">
-            <img src="https://via.placeholder.com/400x200/5e2a84/ffffff?text=News" alt="${n.title}">
-            <div class="news-card-content">
-              <h3>${n.title}</h3>
-              <p>${n.desc}</p>
-              <div class="news-card-meta">
-                <span><i class="fas fa-calendar"></i> ${n.date}</span>
-                <span><i class="fas fa-eye"></i> ${n.views}</span>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
+        .catch(err => console.error('加载新闻失败:', err));
     }
-    
+
     window.addEventListener('load', loadConfig);
   </script>
 </body>

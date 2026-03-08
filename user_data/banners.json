@@ -1,0 +1,21 @@
+{
+  "banners": [
+    {
+      "type": "image",
+      "title": "欢迎使用社团管理系统",
+      "desc": "连接每一个热爱，创造无限可能",
+      "src": "/image/banners/90421afc1d90437488238af7a133370a.jpg"
+    },
+    {
+      "type": "video",
+      "src": "/image/banners/704c546ea2fd4d1d971027257ff70e14.mp4",
+      "poster": "/image/banners/704c546ea2fd4d1d971027257ff70e14.jpg"
+    },
+    {
+      "type": "image",
+      "title": "专业的管理平台",
+      "desc": "高效管理，轻松组织",
+      "src": "/image/banners/edf32e23e32f49fabf603fcc6aba5db5.jpg"
+    }
+  ]
+}

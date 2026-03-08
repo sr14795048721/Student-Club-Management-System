@@ -48,6 +48,19 @@ def init_db():
         user_agent TEXT,
         visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS news (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        cover_image TEXT,
+        author_id INTEGER NOT NULL,
+        publish_date TEXT NOT NULL,
+        views INTEGER DEFAULT 0,
+        status TEXT DEFAULT 'published',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (author_id) REFERENCES users(id)
+    )''')
     
     # 创建默认管理员
     c.execute("SELECT * FROM users WHERE username='admin'")
@@ -354,11 +367,165 @@ def serve_image(filename):
 
 @app.route('/news/<path:filename>')
 def serve_news(filename):
+    if filename.endswith('.html') and filename != 'detail.html':
+        response = send_from_directory('news', 'detail.html')
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        return response
     response = send_from_directory('news', filename)
     if filename.endswith('.html'):
         response.headers['Content-Type'] = 'text/html; charset=utf-8'
         response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     return response
+
+@app.route('/api/news', methods=['GET', 'POST'])
+def news_api():
+    if request.method == 'GET':
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('''SELECT n.id, n.title, n.content, n.cover_image, n.author_id, u.name, 
+                     n.publish_date, n.views, n.status, n.created_at, n.updated_at
+                     FROM news n JOIN users u ON n.author_id = u.id 
+                     WHERE n.status = 'published' ORDER BY n.publish_date DESC''')
+        news_list = [{'id': r[0], 'title': r[1], 'content': r[2], 'cover_image': r[3],
+                      'author_id': r[4], 'author_name': r[5], 'publish_date': r[6],
+                      'views': r[7], 'status': r[8], 'created_at': r[9], 'updated_at': r[10]}
+                     for r in c.fetchall()]
+        conn.close()
+        return jsonify({'success': True, 'news': news_list})
+    
+    elif request.method == 'POST':
+        user, error = check_session()
+        if error:
+            return jsonify(error), error['code']
+        if user['role'] != 'admin':
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        data = request.json
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('''INSERT INTO news (title, content, cover_image, author_id, publish_date, status)
+                     VALUES (?, ?, ?, ?, ?, ?)''',
+                  (data['title'], data['content'], data.get('cover_image', ''),
+                   user['id'], data['publish_date'], data.get('status', 'published')))
+        news_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'id': news_id})
+
+@app.route('/api/news/<int:news_id>', methods=['GET', 'PUT', 'DELETE'])
+def news_detail(news_id):
+    if request.method == 'GET':
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('UPDATE news SET views = views + 1 WHERE id = ?', (news_id,))
+        c.execute('''SELECT n.id, n.title, n.content, n.cover_image, n.author_id, u.name,
+                     n.publish_date, n.views, n.status FROM news n JOIN users u ON n.author_id = u.id
+                     WHERE n.id = ?''', (news_id,))
+        row = c.fetchone()
+        conn.commit()
+        conn.close()
+        if not row:
+            return jsonify({'error': 'NOT_FOUND', 'code': 404}), 404
+        return jsonify({'success': True, 'news': {
+            'id': row[0], 'title': row[1], 'content': row[2], 'cover_image': row[3],
+            'author_id': row[4], 'author_name': row[5], 'publish_date': row[6],
+            'views': row[7], 'status': row[8]
+        }})
+    
+    elif request.method == 'PUT':
+        user, error = check_session()
+        if error:
+            return jsonify(error), error['code']
+        if user['role'] != 'admin':
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        data = request.json
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('''UPDATE news SET title=?, content=?, cover_image=?, publish_date=?, 
+                     status=?, updated_at=CURRENT_TIMESTAMP WHERE id=?''',
+                  (data['title'], data['content'], data.get('cover_image', ''),
+                   data['publish_date'], data.get('status', 'published'), news_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    elif request.method == 'DELETE':
+        user, error = check_session()
+        if error:
+            return jsonify(error), error['code']
+        if user['role'] != 'admin':
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute('DELETE FROM news WHERE id = ?', (news_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+@app.route('/api/banners', methods=['GET', 'POST'])
+def banners_api():
+    if request.method == 'GET':
+        config_file = os.path.join('user_data', 'banners.json')
+        if os.path.exists(config_file):
+            with open(config_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return jsonify({'success': True, 'banners': data.get('banners', [])})
+        return jsonify({'success': True, 'banners': []})
+    
+    elif request.method == 'POST':
+        user, error = check_session()
+        if error:
+            return jsonify(error), error['code']
+        if user['role'] != 'admin':
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        data = request.json
+        config_file = os.path.join('user_data', 'banners.json')
+        os.makedirs('user_data', exist_ok=True)
+        
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump({'banners': data.get('banners', [])}, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({'success': True})
+
+from werkzeug.utils import secure_filename
+import uuid
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': '没有文件'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': '文件名为空'}), 400
+    
+    ext = os.path.splitext(file.filename)[1]
+    filename = f"{uuid.uuid4().hex}{ext}"
+    
+    # 根据文件类型选择目录
+    if ext.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+        upload_dir = os.path.join('image', 'banners')
+        url_prefix = '/image/banners/'
+    elif ext.lower() in ['.mp4', '.webm', '.ogg']:
+        upload_dir = os.path.join('image', 'banners')
+        url_prefix = '/image/banners/'
+    else:
+        upload_dir = os.path.join('news', 'images')
+        url_prefix = '/news/images/'
+    
+    os.makedirs(upload_dir, exist_ok=True)
+    filepath = os.path.join(upload_dir, filename)
+    file.save(filepath)
+    
+    return jsonify({'success': True, 'url': url_prefix + filename})
 
 if __name__ == '__main__':
     init_db()

@@ -1,3 +1,53 @@
+const apiClient = {
+  async request(url, options = {}) {
+    const headers = {
+      'Authorization': localStorage.getItem('authToken'),
+      ...options.headers
+    };
+    
+    if (options.body && !(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
+    
+    const response = await fetch(url, {
+      ...options,
+      headers
+    });
+    
+    if (response.status === 401) {
+      alert('会话超时，请重新登录');
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    
+    return response;
+  },
+  
+  async get(url) {
+    return this.request(url);
+  },
+  
+  async post(url, data, isJson = true) {
+    return this.request(url, {
+      method: 'POST',
+      body: isJson ? JSON.stringify(data) : data
+    });
+  },
+  
+  async put(url, data) {
+    return this.request(url, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+  
+  async delete(url) {
+    return this.request(url, {
+      method: 'DELETE'
+    });
+  }
+};
+
 // API客户端 - 与Python后端通信
 const API_BASE = 'http://localhost:5000/api';
 
