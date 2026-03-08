@@ -301,7 +301,6 @@ server {
 
 ## 致谢
 
-- 华中师范大学 - 设计风格参考
 - Bootstrap - UI 框架
 - Flask - Web 框架
 - 所有开源项目贡献者
