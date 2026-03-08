@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社团推荐 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f0f2f5; }
+    .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 12px; }
+    .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 20px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+    .back-btn:hover { background: rgba(255,255,255,0.3); }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+    .card { background: white; border-radius: 24px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
+    .card h2 { font-size: 1.3rem; color: #1e1e2f; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+    .club-card { background: #f8f9fa; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #f093fb; }
+    .club-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: #2d3748; }
+    .club-card p { color: #718096; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; background: #e6f2ff; color: #0066cc; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <h1><i class="fas fa-star"></i> 推荐社团</h1>
+      <button class="back-btn" onclick="location.href='teacher.html'"><i class="fas fa-arrow-left"></i> 返回</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2><i class="fas fa-info-circle"></i> 说明</h2>
+      <p>查看主页推荐的社团列表。管理员可配置推荐内容。</p>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-users"></i> 推荐社团</h2>
+      <div id="clubsList" class="grid"></div>
+    </div>
+  </div>
+
+  <script src="/page/auth-check.js"></script>
+  <script>
+    async function init() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/check-session', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        if (!data.success || data.user.role !== 'teacher') {
+          window.location.href = '/login';
+          return;
+        }
+        
+        loadRecommendedClubs();
+      } catch (err) {
+        console.error(err);
+        window.location.href = '/login';
+      }
+    }
+
+    async function loadRecommendedClubs() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/clubs', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        const list = document.getElementById('clubsList');
+        
+        if (data.success && data.clubs && data.clubs.length > 0) {
+          const recommended = localStorage.getItem('recommendedClubs');
+          const recommendedIds = recommended ? JSON.parse(recommended) : [];
+          
+          let clubs = data.clubs;
+          if (recommendedIds.length > 0) {
+            clubs = clubs.filter(c => recommendedIds.includes(c.id));
+          } else {
+            clubs = clubs.slice(0, 4);
+          }
+          
+          list.innerHTML = clubs.map(club => `
+            <div class="club-card">
+              <h3>${club.name}</h3>
+              <p>${club.description || '暂无描述'}</p>
+              <p><i class="fas fa-user"></i> 成员: ${club.memberCount || 0}人</p>
+              <span class="badge">推荐</span>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = '<div style="text-align:center;padding:3rem;color:#a0aec0;grid-column:1/-1;">暂无推荐社团</div>';
+        }
+      } catch (err) {
+        console.error('加载失败:', err);
+        document.getElementById('clubsList').innerHTML = '<div style="text-align:center;padding:3rem;color:#a0aec0;grid-column:1/-1;">加载失败</div>';
+      }
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

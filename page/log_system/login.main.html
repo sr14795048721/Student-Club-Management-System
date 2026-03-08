@@ -465,58 +465,53 @@
   <!-- 引入 Swiper JS、共享JS和初始化脚本 -->
   <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
   <script src="/page/api-client.js"></script>
-  <script src="/page/log_system/carousel_storage.js"></script>
-  <script src="/page/log_system/carousel_image.js"></script>
-  <script src="/page/log_system/log_image_system.js"></script>
-  <script src="/page/log_system/login-handler.js"></script>
   <script>
     (function() {
-      // 使用共享模块加载配置
-      const slidesConfig = CarouselSystem.loadConfig();
       const wrapper = document.getElementById('dynamic-slides-wrapper');
       if (!wrapper) return;
-      wrapper.innerHTML = '';
 
-      // 生成幻灯片
-      const loadSlides = async () => {
-        const config = slidesConfig.length > 0 ? slidesConfig : await CarouselSystem.scanImages();
-        
-        for (const item of config) {
-          const slide = document.createElement('div');
-          slide.className = 'swiper-slide';
-          const imgPath = await CarouselSystem.getImagePath(item.name);
-          slide.style.backgroundImage = `url('${imgPath}')`;
+      fetch('/api/banners')
+        .then(res => res.json())
+        .then(data => {
+          const banners = data.banners || [];
+          
+          if (banners.length === 0) {
+            wrapper.innerHTML = '<div class="swiper-slide" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%)"><div class="slide-caption"><h2>欢迎使用社团管理系统</h2><p>连接每一个热爱，创造无限可能</p></div></div>';
+          } else {
+            banners.forEach(item => {
+              const slide = document.createElement('div');
+              slide.className = 'swiper-slide';
+              
+              if (item.type === 'video' && item.poster) {
+                slide.style.backgroundImage = `url('${item.poster}')`;
+              } else if (item.src) {
+                slide.style.backgroundImage = `url('${item.src}')`;
+              }
 
-          const caption = document.createElement('div');
-          caption.className = 'slide-caption';
-          caption.innerHTML = `<h2>${item.title || ''}</h2><p>${item.description || ''}</p>`;
+              if (item.title || item.desc) {
+                const caption = document.createElement('div');
+                caption.className = 'slide-caption';
+                caption.innerHTML = `<h2>${item.title || ''}</h2><p>${item.desc || ''}</p>`;
+                slide.appendChild(caption);
+              }
 
-          slide.appendChild(caption);
-          wrapper.appendChild(slide);
-        }
+              wrapper.appendChild(slide);
+            });
+          }
 
-        // 初始化 Swiper
-        new Swiper('.swiper', {
-          autoplay: {
-            delay: 4000,
-            disableOnInteraction: false,
-            pauseOnMouseEnter: true,
-          },
-          loop: true,
-          speed: 800,
-          pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-            dynamicBullets: false,
-          },
-          navigation: false,
-          grabCursor: true,
-          preloadImages: true,
-          updateOnWindowResize: true,
+          new Swiper('.swiper', {
+            autoplay: { delay: 4000, disableOnInteraction: false },
+            loop: banners.length > 1,
+            speed: 800,
+            pagination: { el: '.swiper-pagination', clickable: true },
+            grabCursor: true
+          });
+        })
+        .catch(err => {
+          console.error('加载轮播图失败:', err);
+          wrapper.innerHTML = '<div class="swiper-slide" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%)"><div class="slide-caption"><h2>欢迎使用社团管理系统</h2><p>连接每一个热爱，创造无限可能</p></div></div>';
+          new Swiper('.swiper', { loop: false });
         });
-      };
-
-      window.addEventListener('load', loadSlides);
     })();
   </script>
   <script>
@@ -533,21 +528,21 @@
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
       
-      const username = email.split('@')[0] || email;
+      const username = email.includes('@') ? email.split('@')[0] : email;
       
       ApiClient.login(username, password)
         .then(result => {
           if (result.success) {
-            alert('登录成功！欢迎 ' + result.user.name);
+            const roleNames = { admin: '管理员', teacher: '教师', student: '学生' };
+            alert(`登录成功！欢迎 ${result.user.name} (${roleNames[result.user.role] || result.user.role})`);
             
             setTimeout(() => {
-              if (result.user.role === 'admin') {
-                window.location.href = '/page/user_system/admin/admin.html';
-              } else if (result.user.role === 'teacher') {
-                window.location.href = '/page/user_system/teacher/teacher.html';
-              } else {
-                window.location.href = '/page/user_system/student/student.html';
-              }
+              const redirects = {
+                admin: '/page/user_system/admin/admin.html',
+                teacher: '/page/user_system/teacher/teacher.html',
+                student: '/page/user_system/student/student.html'
+              };
+              window.location.href = redirects[result.user.role] || '/home';
             }, 500);
           }
         })

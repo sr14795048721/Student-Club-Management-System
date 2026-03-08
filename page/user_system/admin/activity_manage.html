@@ -4,299 +4,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>活动管理 - 社团管理系统</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    body {
-      background: #f0f2f5;
-      min-height: 100vh;
-    }
-    .header {
-      background: white;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header h1 {
-      font-size: 1.5rem;
-      color: #1e1e2f;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .back-btn {
-      padding: 10px 20px;
-      background: #1e1e2f;
-      color: white;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: 0.2s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .back-btn:hover {
-      background: #2a2a3f;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 2rem;
-    }
-    .card {
-      background: white;
-      border-radius: 24px;
-      padding: 2rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
-    }
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    .search-box {
-      display: flex;
-      align-items: center;
-      background: #f4f4f9;
-      border-radius: 20px;
-      padding: 10px 18px;
-      flex: 1;
-      max-width: 400px;
-    }
-    .search-box input {
-      border: none;
-      background: transparent;
-      outline: none;
-      width: 100%;
-      padding: 0 10px;
-    }
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-primary {
-      background: #1e1e2f;
-      color: white;
-    }
-    .btn-primary:hover {
-      background: #2a2a3f;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    th {
-      background: #f8f9fa;
-      font-weight: 600;
-      color: #1e1e2f;
-    }
-    .action-btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      margin-right: 8px;
-      transition: 0.2s;
-    }
-    .btn-edit {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-    .btn-delete {
-      background: #ffebee;
-      color: #c62828;
-    }
-    .btn-edit:hover {
-      background: #bbdefb;
-    }
-    .btn-delete:hover {
-      background: #ffcdd2;
-    }
-    .status-badge {
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 0.85rem;
-      font-weight: 600;
-    }
-    .status-upcoming {
-      background: #e8f5e9;
-      color: #388e3c;
-    }
-    .status-ongoing {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-    .status-ended {
-      background: #f5f5f5;
-      color: #757575;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal.active {
-      display: flex;
-    }
-    .modal-content {
-      background: white;
-      border-radius: 24px;
-      padding: 2rem;
-      width: 90%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    .modal-content h2 {
-      margin-bottom: 1.5rem;
-      color: #1e1e2f;
-    }
-    .form-group {
-      margin-bottom: 1rem;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: #2d2d3a;
-    }
-    .form-group input, .form-group textarea, .form-group select {
-      width: 100%;
-      padding: 10px 16px;
-      border: 1.5px solid #dde0e8;
-      border-radius: 12px;
-      outline: none;
-      font-family: inherit;
-    }
-    .form-group textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-      border-color: #4a4a6a;
-    }
-    .modal-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-    .modal-actions .btn {
-      flex: 1;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f0f2f5; }
+    .header { background: white; padding: 1rem 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.5rem; color: #1e1e2f; display: flex; align-items: center; gap: 10px; }
+    .back-btn { padding: 10px 20px; background: #f4f4f9; color: #1e1e2f; border: none; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+    .back-btn:hover { background: #e6e9f0; }
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+    .card { background: white; border-radius: 24px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
+    .card h2 { font-size: 1.3rem; color: #1e1e2f; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: #5e2a84; color: white; }
+    .btn-primary:hover { background: #7b3fa0; }
+    .btn-success { background: #48bb78; color: white; }
+    .btn-success:hover { background: #38a169; }
+    .btn-secondary { background: #e2e8f0; color: #4a5568; }
+    .btn-secondary:hover { background: #cbd5e0; }
+    .btn-danger { background: #f56565; color: white; }
+    .btn-danger:hover { background: #e53e3e; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+    .activity-card { background: #f8f9fa; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #5e2a84; }
+    .activity-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: #2d3748; }
+    .activity-card p { color: #718096; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; margin-right: 0.5rem; }
+    .badge-global { background: #e6f2ff; color: #0066cc; }
+    .badge-club { background: #fff3cd; color: #856404; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 16px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2d3748; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #5e2a84; }
   </style>
 </head>
 <body>
   <div class="header">
     <h1><i class="fas fa-calendar-alt"></i> 活动管理</h1>
-    <a href="admin.html" class="back-btn">
-      <i class="fas fa-arrow-left"></i> 返回
-    </a>
+    <button class="back-btn" onclick="location.href='admin.html'"><i class="fas fa-arrow-left"></i> 返回</button>
   </div>
 
   <div class="container">
     <div class="card">
-      <div class="toolbar">
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input type="text" id="searchInput" placeholder="搜索活动...">
+      <h2>
+        <span><i class="fas fa-calendar"></i> 所有活动</span>
+        <div>
+          <button class="btn btn-success" onclick="openCreateModal('global')"><i class="fas fa-plus"></i> 创建全局活动</button>
+          <button class="btn btn-primary" onclick="openCreateModal('club')"><i class="fas fa-plus"></i> 创建社团活动</button>
         </div>
-        <div style="display:flex;gap:1rem;">
-          <button class="btn" onclick="showCalendar()">
-            <i class="fas fa-calendar"></i> 日历视图
-          </button>
-          <button class="btn btn-primary" onclick="openAddModal()">
-            <i class="fas fa-plus"></i> 添加活动
-          </button>
+      </h2>
+      <div id="activitiesList" class="grid"></div>
+    </div>
+  </div>
+
+  <div id="activityModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">创建活动</h2>
+      <form onsubmit="submitActivity(event)">
+        <input type="hidden" id="activityType">
+        <div class="form-group" id="clubSelectGroup" style="display:none;">
+          <label>所属社团</label>
+          <select id="activityClub"></select>
         </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>活动名称</th>
-            <th>主办社团</th>
-            <th>活动时间</th>
-            <th>地点</th>
-            <th>状态</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="activityTable">
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="modal" id="calendarModal">
-    <div class="modal-content" style="max-width:900px;">
-      <h2>活动日历</h2>
-      <div id="calendar" style="margin:2rem 0;"></div>
-      <button class="btn" onclick="closeCalendar()" style="width:100%;">关闭</button>
-    </div>
-  </div>
-
-  <div class="modal" id="detailModal">
-    <div class="modal-content">
-      <h2 id="detailTitle"></h2>
-      <div id="detailContent" style="line-height:1.8;"></div>
-      <button class="btn" onclick="closeDetail()" style="width:100%;margin-top:1rem;">关闭</button>
-    </div>
-  </div>
-
-  <div class="modal" id="activityModal">
-    <div class="modal-content">
-      <h2 id="modalTitle">添加活动</h2>
-      <form id="activityForm">
-        <input type="hidden" id="activityId">
         <div class="form-group">
           <label>活动名称</label>
           <input type="text" id="activityName" required>
         </div>
         <div class="form-group">
-          <label>主办社团</label>
-          <select id="activityClub" required>
-            <option value="">请选择社团</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>开始时间</label>
-          <input type="datetime-local" id="activityStartTime" required>
-        </div>
-        <div class="form-group">
-          <label>结束时间</label>
-          <input type="datetime-local" id="activityEndTime" required>
+          <label>活动时间</label>
+          <input type="datetime-local" id="activityDate" required>
         </div>
         <div class="form-group">
           <label>活动地点</label>
@@ -304,238 +82,163 @@
         </div>
         <div class="form-group">
           <label>活动描述</label>
-          <textarea id="activityDesc" placeholder="活动详细描述"></textarea>
+          <textarea id="activityDesc" rows="4" required></textarea>
         </div>
         <div class="form-group">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" id="activityRepeat" onchange="toggleRepeat()" style="width:18px;height:18px;">
-            <span>重复活动</span>
-          </label>
+          <label>报名人数限制</label>
+          <input type="number" id="activityLimit" min="0" placeholder="0表示不限制">
         </div>
-        <div class="form-group" id="repeatOptions" style="display:none;">
-          <label>重复频率</label>
-          <select id="repeatFreq">
-            <option value="daily">每天</option>
-            <option value="weekly">每周</option>
-            <option value="monthly">每月</option>
-          </select>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn" onclick="closeModal()">取消</button>
-          <button type="submit" class="btn btn-primary">保存</button>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+          <button type="submit" class="btn btn-primary">创建</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="admin_data.js"></script>
+  <script src="/page/auth-check.js"></script>
   <script>
-    const STORAGE_KEY = 'systemActivities';
-    const CLUB_KEY = 'systemClubs';
+    let currentUser = null;
+    let allClubs = [];
 
-    function loadClubs() {
-      const clubs = JSON.parse(localStorage.getItem(CLUB_KEY) || '[]');
-      const select = document.getElementById('activityClub');
-      select.innerHTML = '<option value="">请选择社团</option>';
-      clubs.forEach(club => {
-        const option = document.createElement('option');
-        option.value = club.name;
-        option.textContent = club.name;
-        select.appendChild(option);
-      });
+    async function init() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/check-session', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        if (!data.success || data.user.role !== 'admin') {
+          window.location.href = '/login';
+          return;
+        }
+        
+        currentUser = data.user;
+        await loadClubs();
+        loadActivities();
+      } catch (err) {
+        console.error(err);
+        window.location.href = '/login';
+      }
     }
 
-    function getStatus(startTime, endTime) {
-      const now = new Date();
-      const start = new Date(startTime);
-      const end = new Date(endTime);
-      
-      if (now < start) return { text: '未开始', class: 'status-upcoming' };
-      if (now >= start && now <= end) return { text: '进行中', class: 'status-ongoing' };
-      return { text: '已结束', class: 'status-ended' };
+    async function loadClubs() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/clubs', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        allClubs = data.clubs || [];
+        
+        const select = document.getElementById('activityClub');
+        select.innerHTML = allClubs.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      } catch (err) {
+        console.error('加载社团失败:', err);
+      }
     }
 
-    function loadActivities() {
-      const activities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const tbody = document.getElementById('activityTable');
-      tbody.innerHTML = '';
-
-      activities.forEach(activity => {
-        const status = getStatus(activity.startTime, activity.endTime);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${activity.id}</td>
-          <td><a href="#" onclick="showDetail(${activity.id});return false;" style="color:#1976d2;text-decoration:none;">${activity.name}</a></td>
-          <td>${activity.club}</td>
-          <td>${new Date(activity.startTime).toLocaleString()} - ${new Date(activity.endTime).toLocaleString()}</td>
-          <td>${activity.location}</td>
-          <td><span class="status-badge ${status.class}">${status.text}</span></td>
-          <td>
-            <button class="action-btn btn-edit" onclick="editActivity(${activity.id})">
-              <i class="fas fa-edit"></i> 编辑
-            </button>
-            <button class="action-btn btn-delete" onclick="deleteActivity(${activity.id})">
-              <i class="fas fa-trash"></i> 删除
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+    async function loadActivities() {
+      const list = document.getElementById('activitiesList');
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`/api/user/${currentUser.id}/activities`, { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        const activities = data.activities || [];
+        if (activities.length === 0) {
+          list.innerHTML = '<div style="text-align:center;padding:3rem;color:#a0aec0;"><i class="fas fa-calendar" style="font-size:4rem;opacity:0.3;margin-bottom:1rem;"></i><p>暂无活动</p></div>';
+          return;
+        }
+        
+        list.innerHTML = activities.map(act => `
+          <div class="activity-card">
+            <h3>${act.name}</h3>
+            <p><i class="fas fa-clock"></i> ${act.date || '待定'}</p>
+            <p><i class="fas fa-map-marker-alt"></i> ${act.location || '待定'}</p>
+            <p>${act.description || ''}</p>
+            <div style="margin-top: 1rem;">
+              <span class="badge ${act.type === 'global' ? 'badge-global' : 'badge-club'}">${act.type === 'global' ? '全局活动' : '社团活动'}</span>
+              ${act.clubName ? `<span class="badge badge-club">${act.clubName}</span>` : ''}
+              <span class="badge" style="background:#e8f5e9;color:#388e3c;">报名: ${act.participants || 0}人</span>
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+              <button class="btn btn-secondary" onclick="editActivity('${act.id}')"><i class="fas fa-edit"></i> 编辑</button>
+              <button class="btn btn-danger" onclick="deleteActivity('${act.id}')"><i class="fas fa-trash"></i> 删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<div style="text-align:center;padding:3rem;color:#a0aec0;"><p>加载失败</p></div>';
+      }
     }
 
-    function openAddModal() {
-      document.getElementById('modalTitle').textContent = '添加活动';
-      document.getElementById('activityForm').reset();
-      document.getElementById('activityId').value = '';
-      loadClubs();
+    function openCreateModal(type) {
+      document.getElementById('activityType').value = type;
+      document.getElementById('modalTitle').textContent = type === 'global' ? '创建全局活动' : '创建社团活动';
+      document.getElementById('clubSelectGroup').style.display = type === 'club' ? 'block' : 'none';
       document.getElementById('activityModal').classList.add('active');
     }
 
     function closeModal() {
       document.getElementById('activityModal').classList.remove('active');
+      document.querySelector('form').reset();
+    }
+
+    async function submitActivity(e) {
+      e.preventDefault();
+      const type = document.getElementById('activityType').value;
+      const data = {
+        type,
+        name: document.getElementById('activityName').value,
+        date: document.getElementById('activityDate').value,
+        location: document.getElementById('activityLocation').value,
+        description: document.getElementById('activityDesc').value,
+        limit: document.getElementById('activityLimit').value || 0,
+        creator: currentUser.id
+      };
+      
+      if (type === 'club') {
+        data.clubId = document.getElementById('activityClub').value;
+        const club = allClubs.find(c => c.id === data.clubId);
+        data.clubName = club ? club.name : '';
+      }
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        await fetch(`/api/user/${currentUser.id}/activities`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': token },
+          body: JSON.stringify(data)
+        });
+        
+        alert('活动创建成功');
+        closeModal();
+        loadActivities();
+      } catch (err) {
+        alert('创建失败: ' + err.message);
+      }
+    }
+
+    async function deleteActivity(id) {
+      if (!confirm('确定要删除这个活动吗？')) return;
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        await fetch(`/api/user/${currentUser.id}/activities?id=${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': token }
+        });
+        
+        alert('删除成功');
+        loadActivities();
+      } catch (err) {
+        alert('删除失败: ' + err.message);
+      }
     }
 
     function editActivity(id) {
-      const activities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const activity = activities.find(a => a.id === id);
-      if (activity) {
-        document.getElementById('modalTitle').textContent = '编辑活动';
-        document.getElementById('activityId').value = activity.id;
-        document.getElementById('activityName').value = activity.name;
-        loadClubs();
-        document.getElementById('activityClub').value = activity.club;
-        document.getElementById('activityStartTime').value = activity.startTime;
-        document.getElementById('activityEndTime').value = activity.endTime;
-        document.getElementById('activityLocation').value = activity.location;
-        document.getElementById('activityDesc').value = activity.description || '';
-        document.getElementById('activityRepeat').checked = activity.repeat || false;
-        document.getElementById('repeatFreq').value = activity.repeatFreq || 'weekly';
-        toggleRepeat();
-        document.getElementById('activityModal').classList.add('active');
-      }
+      alert('编辑功能开发中');
     }
 
-    function deleteActivity(id) {
-      if (confirm('确定要删除该活动吗？')) {
-        let activities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        activities = activities.filter(a => a.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(activities));
-        loadActivities();
-      }
-    }
-
-    document.getElementById('activityForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const activities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const activityId = document.getElementById('activityId').value;
-      
-      const activityData = {
-        id: activityId ? parseInt(activityId) : Date.now(),
-        name: document.getElementById('activityName').value,
-        club: document.getElementById('activityClub').value,
-        startTime: document.getElementById('activityStartTime').value,
-        endTime: document.getElementById('activityEndTime').value,
-        location: document.getElementById('activityLocation').value,
-        description: document.getElementById('activityDesc').value,
-        repeat: document.getElementById('activityRepeat').checked,
-        repeatFreq: document.getElementById('repeatFreq').value,
-        createdAt: activityId ? activities.find(a => a.id === parseInt(activityId)).createdAt : new Date().toISOString()
-      };
-
-      if (activityId) {
-        const index = activities.findIndex(a => a.id === parseInt(activityId));
-        activities[index] = activityData;
-      } else {
-        activities.push(activityData);
-      }
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(activities));
-      closeModal();
-      loadActivities();
-    });
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const search = e.target.value.toLowerCase();
-      const rows = document.querySelectorAll('#activityTable tr');
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(search) ? '' : 'none';
-      });
-    });
-
-    loadActivities();
-
-    function toggleRepeat() {
-      const checked = document.getElementById('activityRepeat').checked;
-      document.getElementById('repeatOptions').style.display = checked ? 'block' : 'none';
-    }
-
-    function showCalendar() {
-      const activities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const calendar = document.getElementById('calendar');
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      
-      let html = '<div style="text-align:center;font-size:1.2rem;margin-bottom:1rem;">' + year + '年' + (month+1) + '月</div>';
-      html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;">';
-      
-      ['日','一','二','三','四','五','六'].forEach(d => {
-        html += '<div style="text-align:center;font-weight:600;padding:0.5rem;">' + d + '</div>';
-      });
-      
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      
-      for (let i = 0; i < firstDay; i++) {
-        html += '<div></div>';
-      }
-      
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
-        const dayActivities = activities.filter(a => a.startTime.startsWith(dateStr));
-        const hasActivity = dayActivities.length > 0;
-        
-        html += '<div style="border:1px solid #ddd;padding:0.5rem;min-height:60px;background:' + (hasActivity ? '#e3f2fd' : 'white') + ';border-radius:8px;">';
-        html += '<div style="font-weight:600;">' + day + '</div>';
-        dayActivities.forEach(a => {
-          html += '<div style="font-size:0.75rem;color:#1976d2;margin-top:2px;cursor:pointer;" onclick="showDetail(' + a.id + ');closeCalendar();">' + a.name + '</div>';
-        });
-        html += '</div>';
-      }
-      
-      html += '</div>';
-      calendar.innerHTML = html;
-      document.getElementById('calendarModal').classList.add('active');
-    }
-
-    function closeCalendar() {
-      document.getElementById('calendarModal').classList.remove('active');
-    }
-
-    function showDetail(id) {
-      const activities = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const activity = activities.find(a => a.id === id);
-      if (activity) {
-        document.getElementById('detailTitle').textContent = activity.name;
-        const status = getStatus(activity.startTime, activity.endTime);
-        document.getElementById('detailContent').innerHTML = `
-          <p><strong>主办社团:</strong> ${activity.club}</p>
-          <p><strong>开始时间:</strong> ${new Date(activity.startTime).toLocaleString()}</p>
-          <p><strong>结束时间:</strong> ${new Date(activity.endTime).toLocaleString()}</p>
-          <p><strong>活动地点:</strong> ${activity.location}</p>
-          <p><strong>活动状态:</strong> <span class="status-badge ${status.class}">${status.text}</span></p>
-          <p><strong>活动描述:</strong></p>
-          <p style="white-space:pre-wrap;">${activity.description || '无'}</p>
-          ${activity.repeat ? '<p><strong>重复频率:</strong> ' + (activity.repeatFreq === 'daily' ? '每天' : activity.repeatFreq === 'weekly' ? '每周' : '每月') + '</p>' : ''}
-        `;
-        document.getElementById('detailModal').classList.add('active');
-      }
-    }
-
-    function closeDetail() {
-      document.getElementById('detailModal').classList.remove('active');
-    }
+    window.addEventListener('load', init);
   </script>
 </body>
 </html>

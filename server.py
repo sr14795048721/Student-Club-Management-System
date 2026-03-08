@@ -105,7 +105,7 @@ def register():
     password = data.get('password')
     email = data.get('email')
     name = data.get('name', username)
-    role = data.get('role', 'student')
+    role = 'student'  # 默认只能注册学生账户
     phone = data.get('phone', '')
     
     if not all([username, password, email]):
@@ -141,7 +141,7 @@ def login():
         conn.close()
         return jsonify({'success': False, 'message': '用户名或密码错误'}), 401
     
-    if user[6] != 'active':
+    if user[6] == 'inactive':
         conn.close()
         return jsonify({'success': False, 'message': '账户已被禁用'}), 403
     
@@ -160,7 +160,9 @@ def login():
             'username': user[1],
             'name': user[3],
             'role': user[4],
-            'email': user[5]
+            'email': user[5],
+            'status': user[6],
+            'needsProfile': user[6] == 'pending'  # 首次登录标记
         }
     })
 
@@ -200,6 +202,95 @@ def get_users():
     conn.close()
     return jsonify({'success': True, 'users': users})
 
+@app.route('/api/user/<int:user_id>', methods=['PUT', 'DELETE'])
+def manage_user(user_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403, 'message': '权限不足'}), 403
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    if request.method == 'PUT':
+        data = request.json
+        c.execute('''UPDATE users SET username=?, email=?, name=?, role=?, phone=?, status=? 
+                     WHERE id=?''',
+                  (data['username'], data['email'], data['name'], data['role'], 
+                   data.get('phone', ''), data.get('status', 'active'), user_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    elif request.method == 'DELETE':
+        c.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        c.execute('DELETE FROM sessions WHERE user_id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+
+@app.route('/api/user/create-teacher', methods=['POST'])
+def create_teacher():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403, 'message': '权限不足'}), 403
+    
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    name = data.get('name', username)
+    password = secrets.token_urlsafe(8)  # 生成随机密码
+    
+    if not all([username, email]):
+        return jsonify({'success': False, 'message': '缺少必要字段'}), 400
+    
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    try:
+        c.execute("INSERT INTO users (username, password, email, name, role, status) VALUES (?, ?, ?, ?, ?, ?)",
+                  (username, generate_password_hash(password), email, name, 'teacher', 'pending'))
+        user_id = c.lastrowid
+        conn.commit()
+        create_user_folder(user_id)
+        return jsonify({'success': True, 'message': '教师账户创建成功', 'password': password, 'user_id': user_id})
+    except sqlite3.IntegrityError:
+        return jsonify({'success': False, 'message': '用户名或邮箱已存在'}), 400
+    finally:
+        conn.close()
+
+@app.route('/api/user/<int:user_id>/profile', methods=['GET', 'POST'])
+def user_profile(user_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['id'] != user_id and user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    user_dir = os.path.join(USER_DATA_DIR, str(user_id))
+    if not os.path.exists(user_dir):
+        create_user_folder(user_id)
+    
+    profile_file = os.path.join(user_dir, 'profile.json')
+    
+    if request.method == 'GET':
+        if os.path.exists(profile_file):
+            with open(profile_file, 'r', encoding='utf-8') as f:
+                return jsonify({'success': True, 'profile': json.load(f)})
+        return jsonify({'success': True, 'profile': {}})
+    
+    elif request.method == 'POST':
+        data = request.json
+        with open(profile_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True})
+
 @app.route('/api/user/<int:user_id>/data', methods=['GET', 'POST'])
 def user_data(user_id):
     user, error = check_session()
@@ -210,6 +301,9 @@ def user_data(user_id):
         return jsonify({'error': 'PERMISSION_DENIED', 'code': 403, 'message': '权限不足'}), 403
     
     user_dir = os.path.join(USER_DATA_DIR, str(user_id))
+    if not os.path.exists(user_dir):
+        create_user_folder(user_id)
+    
     data_type = request.args.get('type', 'profile')
     file_path = os.path.join(user_dir, f'{data_type}.json')
     
@@ -221,8 +315,109 @@ def user_data(user_id):
     
     elif request.method == 'POST':
         data = request.json
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True})
+
+@app.route('/api/user/<int:user_id>/clubs', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def user_clubs(user_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['id'] != user_id and user['role'] not in ['admin', 'teacher']:
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403, 'message': '权限不足'}), 403
+    
+    clubs_dir = os.path.join(USER_DATA_DIR, str(user_id), 'clubs')
+    os.makedirs(clubs_dir, exist_ok=True)
+    
+    if request.method == 'GET':
+        clubs = []
+        for filename in os.listdir(clubs_dir):
+            if filename.endswith('.json'):
+                with open(os.path.join(clubs_dir, filename), 'r', encoding='utf-8') as f:
+                    club = json.load(f)
+                    club['id'] = filename[:-5]
+                    clubs.append(club)
+        return jsonify({'success': True, 'clubs': clubs})
+    
+    elif request.method == 'POST':
+        data = request.json
+        club_id = secrets.token_urlsafe(8)
+        data['created_at'] = datetime.now().isoformat()
+        data['updated_at'] = datetime.now().isoformat()
+        with open(os.path.join(clubs_dir, f'{club_id}.json'), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True, 'id': club_id})
+    
+    elif request.method == 'PUT':
+        club_id = request.args.get('id')
+        if not club_id:
+            return jsonify({'error': 'MISSING_ID', 'code': 400, 'message': '缺少社团ID'}), 400
+        data = request.json
+        data['updated_at'] = datetime.now().isoformat()
+        with open(os.path.join(clubs_dir, f'{club_id}.json'), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True})
+    
+    elif request.method == 'DELETE':
+        club_id = request.args.get('id')
+        if not club_id:
+            return jsonify({'error': 'MISSING_ID', 'code': 400, 'message': '缺少社团ID'}), 400
+        file_path = os.path.join(clubs_dir, f'{club_id}.json')
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({'success': True})
+
+@app.route('/api/user/<int:user_id>/activities', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def user_activities(user_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['id'] != user_id and user['role'] not in ['admin', 'teacher']:
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403, 'message': '权限不足'}), 403
+    
+    activities_dir = os.path.join(USER_DATA_DIR, str(user_id), 'activities')
+    os.makedirs(activities_dir, exist_ok=True)
+    
+    if request.method == 'GET':
+        activities = []
+        for filename in os.listdir(activities_dir):
+            if filename.endswith('.json'):
+                with open(os.path.join(activities_dir, filename), 'r', encoding='utf-8') as f:
+                    activity = json.load(f)
+                    activity['id'] = filename[:-5]
+                    activities.append(activity)
+        return jsonify({'success': True, 'activities': activities})
+    
+    elif request.method == 'POST':
+        data = request.json
+        activity_id = secrets.token_urlsafe(8)
+        data['created_at'] = datetime.now().isoformat()
+        data['updated_at'] = datetime.now().isoformat()
+        with open(os.path.join(activities_dir, f'{activity_id}.json'), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True, 'id': activity_id})
+    
+    elif request.method == 'PUT':
+        activity_id = request.args.get('id')
+        if not activity_id:
+            return jsonify({'error': 'MISSING_ID', 'code': 400, 'message': '缺少活动ID'}), 400
+        data = request.json
+        data['updated_at'] = datetime.now().isoformat()
+        with open(os.path.join(activities_dir, f'{activity_id}.json'), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return jsonify({'success': True})
+    
+    elif request.method == 'DELETE':
+        activity_id = request.args.get('id')
+        if not activity_id:
+            return jsonify({'error': 'MISSING_ID', 'code': 400, 'message': '缺少活动ID'}), 400
+        file_path = os.path.join(activities_dir, f'{activity_id}.json')
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return jsonify({'success': True})
 
 @app.route('/api/stats', methods=['GET'])
@@ -251,6 +446,12 @@ def get_admin_stats():
     user_count = c.fetchone()[0]
     c.execute("SELECT COUNT(*) FROM users WHERE status='active'")
     active_users = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM users WHERE role='student'")
+    student_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM users WHERE role='teacher'")
+    teacher_count = c.fetchone()[0]
+    c.execute("SELECT COUNT(*) FROM users WHERE role='admin'")
+    admin_count = c.fetchone()[0]
     
     # 访问统计
     c.execute("SELECT COUNT(*) FROM page_views")
@@ -264,15 +465,32 @@ def get_admin_stats():
     c.execute("SELECT COUNT(*) FROM sessions WHERE expires_at > datetime('now')")
     active_sessions = c.fetchone()[0]
     
-    # 数据库大小
-    import os
-    db_size = os.path.getsize(DB_PATH) / 1024 / 1024  # MB
+    # 新闻统计
+    c.execute("SELECT COUNT(*) FROM news")
+    news_count = c.fetchone()[0]
     
     conn.close()
     
-    # 系统信息
-    import psutil
-    import platform
+    # 社团统计
+    clubs_file = os.path.join(USER_DATA_DIR, 'clubs.json')
+    club_count = 0
+    total_members = 0
+    if os.path.exists(clubs_file):
+        with open(clubs_file, 'r', encoding='utf-8') as f:
+            clubs = json.load(f)
+            club_count = len(clubs)
+            total_members = sum(c.get('memberCount', 0) for c in clubs)
+    
+    # 活动统计
+    activity_count = 0
+    for user_dir in os.listdir(USER_DATA_DIR):
+        if user_dir.isdigit():
+            activities_dir = os.path.join(USER_DATA_DIR, user_dir, 'activities')
+            if os.path.exists(activities_dir):
+                activity_count += len([f for f in os.listdir(activities_dir) if f.endswith('.json')])
+    
+    # 数据库大小
+    db_size = os.path.getsize(DB_PATH) / 1024 / 1024  # MB
     
     return jsonify({
         'success': True,
@@ -280,7 +498,10 @@ def get_admin_stats():
             'users': {
                 'total': user_count,
                 'active': active_users,
-                'inactive': user_count - active_users
+                'inactive': user_count - active_users,
+                'student': student_count,
+                'teacher': teacher_count,
+                'admin': admin_count
             },
             'visits': {
                 'total': total_visits,
@@ -290,13 +511,18 @@ def get_admin_stats():
             'sessions': {
                 'active': active_sessions
             },
+            'news': {
+                'total': news_count
+            },
+            'clubs': {
+                'total': club_count,
+                'totalMembers': total_members
+            },
+            'activities': {
+                'total': activity_count
+            },
             'system': {
-                'db_size': round(db_size, 2),
-                'cpu_percent': psutil.cpu_percent(interval=1),
-                'memory_percent': psutil.virtual_memory().percent,
-                'disk_percent': psutil.disk_usage('/').percent,
-                'platform': platform.system(),
-                'python_version': platform.python_version()
+                'db_size': round(db_size, 2)
             }
         }
     })
@@ -365,6 +591,10 @@ def serve_page(filename):
 def serve_image(filename):
     return send_from_directory('image', filename)
 
+@app.route('/user_data/<path:filename>')
+def serve_user_data(filename):
+    return send_from_directory('user_data', filename)
+
 @app.route('/news/<path:filename>')
 def serve_news(filename):
     if filename.endswith('.html') and filename != 'detail.html':
@@ -398,7 +628,7 @@ def news_api():
         user, error = check_session()
         if error:
             return jsonify(error), error['code']
-        if user['role'] != 'admin':
+        if user['role'] not in ['admin', 'teacher']:
             return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
         
         data = request.json
@@ -494,6 +724,303 @@ def banners_api():
 from werkzeug.utils import secure_filename
 import uuid
 
+@app.route('/api/clubs', methods=['GET', 'POST'])
+def clubs_api():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    clubs_file = os.path.join(USER_DATA_DIR, 'clubs.json')
+    
+    if request.method == 'GET':
+        if os.path.exists(clubs_file):
+            with open(clubs_file, 'r', encoding='utf-8') as f:
+                clubs = json.load(f)
+                return jsonify({'success': True, 'clubs': clubs})
+        return jsonify({'success': True, 'clubs': []})
+    
+    elif request.method == 'POST':
+        if user['role'] not in ['admin', 'teacher']:
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        data = request.json
+        data['id'] = secrets.token_urlsafe(8)
+        data['created_at'] = datetime.now().isoformat()
+        data['memberCount'] = 0
+        
+        clubs = []
+        if os.path.exists(clubs_file):
+            with open(clubs_file, 'r', encoding='utf-8') as f:
+                clubs = json.load(f)
+        
+        clubs.append(data)
+        
+        with open(clubs_file, 'w', encoding='utf-8') as f:
+            json.dump(clubs, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({'success': True, 'id': data['id']})
+
+@app.route('/api/clubs/<club_id>', methods=['GET', 'PUT', 'DELETE'])
+def club_detail(club_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    clubs_file = os.path.join(USER_DATA_DIR, 'clubs.json')
+    
+    if not os.path.exists(clubs_file):
+        return jsonify({'error': 'NOT_FOUND', 'code': 404}), 404
+    
+    with open(clubs_file, 'r', encoding='utf-8') as f:
+        clubs = json.load(f)
+    
+    club = next((c for c in clubs if c['id'] == club_id), None)
+    
+    if request.method == 'GET':
+        if not club:
+            return jsonify({'error': 'NOT_FOUND', 'code': 404}), 404
+        return jsonify({'success': True, 'club': club})
+    
+    elif request.method == 'PUT':
+        if user['role'] not in ['admin', 'teacher']:
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        if not club:
+            return jsonify({'error': 'NOT_FOUND', 'code': 404}), 404
+        
+        data = request.json
+        club.update(data)
+        club['updated_at'] = datetime.now().isoformat()
+        
+        with open(clubs_file, 'w', encoding='utf-8') as f:
+            json.dump(clubs, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({'success': True})
+    
+    elif request.method == 'DELETE':
+        if user['role'] != 'admin':
+            return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+        
+        clubs = [c for c in clubs if c['id'] != club_id]
+        
+        with open(clubs_file, 'w', encoding='utf-8') as f:
+            json.dump(clubs, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({'success': True})
+
+@app.route('/api/clubs/join', methods=['POST'])
+def join_club():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    data = request.json
+    # 保存加入申请到用户数据
+    user_dir = os.path.join(USER_DATA_DIR, str(user['id']))
+    requests_file = os.path.join(user_dir, 'club_requests.json')
+    
+    requests = []
+    if os.path.exists(requests_file):
+        with open(requests_file, 'r', encoding='utf-8') as f:
+            requests = json.load(f)
+    
+    requests.append({
+        'clubId': data['clubId'],
+        'reason': data['reason'],
+        'status': 'pending',
+        'created_at': datetime.now().isoformat()
+    })
+    
+    with open(requests_file, 'w', encoding='utf-8') as f:
+        json.dump(requests, f, ensure_ascii=False, indent=2)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/clubs/apply', methods=['POST'])
+def apply_club():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'teacher':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    data = request.json
+    # 保存申请到管理员审核队列
+    applications_file = os.path.join(USER_DATA_DIR, 'club_applications.json')
+    
+    applications = []
+    if os.path.exists(applications_file):
+        with open(applications_file, 'r', encoding='utf-8') as f:
+            applications = json.load(f)
+    
+    applications.append({
+        'id': secrets.token_urlsafe(8),
+        'name': data['name'],
+        'description': data['description'],
+        'type': data['type'],
+        'reason': data['reason'],
+        'applicant': data['applicant'],
+        'status': 'pending',
+        'created_at': datetime.now().isoformat()
+    })
+    
+    with open(applications_file, 'w', encoding='utf-8') as f:
+        json.dump(applications, f, ensure_ascii=False, indent=2)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/clubs/applications', methods=['GET'])
+def get_club_applications():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    applications_file = os.path.join(USER_DATA_DIR, 'club_applications.json')
+    applications = []
+    if os.path.exists(applications_file):
+        with open(applications_file, 'r', encoding='utf-8') as f:
+            applications = json.load(f)
+    
+    return jsonify({'success': True, 'applications': applications})
+
+@app.route('/api/clubs/applications/<app_id>/approve', methods=['POST'])
+def approve_club_application(app_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    applications_file = os.path.join(USER_DATA_DIR, 'club_applications.json')
+    applications = []
+    if os.path.exists(applications_file):
+        with open(applications_file, 'r', encoding='utf-8') as f:
+            applications = json.load(f)
+    
+    app = next((a for a in applications if a['id'] == app_id), None)
+    if app:
+        app['status'] = 'approved'
+        with open(applications_file, 'w', encoding='utf-8') as f:
+            json.dump(applications, f, ensure_ascii=False, indent=2)
+        
+        # 创建社团到独立数据库
+        clubs_file = os.path.join(USER_DATA_DIR, 'clubs.json')
+        clubs = []
+        if os.path.exists(clubs_file):
+            with open(clubs_file, 'r', encoding='utf-8') as f:
+                clubs = json.load(f)
+        
+        club_data = {
+            'id': secrets.token_urlsafe(8),
+            'name': app['name'],
+            'description': app['description'],
+            'type': app['type'],
+            'advisor': app['applicant'],
+            'memberCount': 0,
+            'created_at': datetime.now().isoformat()
+        }
+        
+        clubs.append(club_data)
+        
+        with open(clubs_file, 'w', encoding='utf-8') as f:
+            json.dump(clubs, f, ensure_ascii=False, indent=2)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/clubs/applications/<app_id>/reject', methods=['POST'])
+def reject_club_application(app_id):
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    applications_file = os.path.join(USER_DATA_DIR, 'club_applications.json')
+    applications = []
+    if os.path.exists(applications_file):
+        with open(applications_file, 'r', encoding='utf-8') as f:
+            applications = json.load(f)
+    
+    app = next((a for a in applications if a['id'] == app_id), None)
+    if app:
+        app['status'] = 'rejected'
+        with open(applications_file, 'w', encoding='utf-8') as f:
+            json.dump(applications, f, ensure_ascii=False, indent=2)
+    
+    return jsonify({'success': True})
+
+@app.route('/api/admin/messages', methods=['GET'])
+def get_admin_messages():
+    user, error = check_session()
+    if error:
+        return jsonify(error), error['code']
+    
+    if user['role'] != 'admin':
+        return jsonify({'error': 'PERMISSION_DENIED', 'code': 403}), 403
+    
+    messages = []
+    
+    # 社团申请消息
+    applications_file = os.path.join(USER_DATA_DIR, 'club_applications.json')
+    if os.path.exists(applications_file):
+        with open(applications_file, 'r', encoding='utf-8') as f:
+            apps = json.load(f)
+            pending_apps = [a for a in apps if a.get('status') == 'pending']
+            for app in pending_apps:
+                messages.append({
+                    'title': '新社团申请',
+                    'content': f"{app['name']} - 等待审批",
+                    'created_at': app.get('created_at', datetime.now().isoformat()),
+                    'read': False
+                })
+    
+    # 意见反馈消息
+    feedback_file = os.path.join(USER_DATA_DIR, 'feedback.json')
+    if os.path.exists(feedback_file):
+        with open(feedback_file, 'r', encoding='utf-8') as f:
+            feedbacks = json.load(f)
+            unread_feedbacks = [f for f in feedbacks if not f.get('read', False)]
+            for fb in unread_feedbacks:
+                messages.append({
+                    'title': '用户反馈',
+                    'content': fb.get('content', '')[:50] + '...',
+                    'created_at': fb.get('created_at', datetime.now().isoformat()),
+                    'read': False
+                })
+    
+    messages.sort(key=lambda x: x['created_at'], reverse=True)
+    return jsonify({'success': True, 'messages': messages})
+
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    data = request.json
+    
+    feedback_file = os.path.join(USER_DATA_DIR, 'feedback.json')
+    feedbacks = []
+    if os.path.exists(feedback_file):
+        with open(feedback_file, 'r', encoding='utf-8') as f:
+            feedbacks = json.load(f)
+    
+    feedbacks.append({
+        'id': secrets.token_urlsafe(8),
+        'name': data.get('name', '匿名'),
+        'email': data.get('email', ''),
+        'content': data.get('content', ''),
+        'created_at': datetime.now().isoformat(),
+        'read': False
+    })
+    
+    with open(feedback_file, 'w', encoding='utf-8') as f:
+        json.dump(feedbacks, f, ensure_ascii=False, indent=2)
+    
+    return jsonify({'success': True})
+
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     user, error = check_session()
@@ -507,14 +1034,20 @@ def upload_file():
     if file.filename == '':
         return jsonify({'success': False, 'message': '文件名为空'}), 400
     
-    ext = os.path.splitext(file.filename)[1]
+    ext = os.path.splitext(file.filename)[1].lower()
     filename = f"{uuid.uuid4().hex}{ext}"
     
     # 根据文件类型选择目录
-    if ext.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-        upload_dir = os.path.join('image', 'banners')
-        url_prefix = '/image/banners/'
-    elif ext.lower() in ['.mp4', '.webm', '.ogg']:
+    if ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+        # 检查是否为头像上传
+        upload_type = request.form.get('type', 'banner')
+        if upload_type == 'avatar':
+            upload_dir = os.path.join('user_data', 'avatars')
+            url_prefix = '/user_data/avatars/'
+        else:
+            upload_dir = os.path.join('image', 'banners')
+            url_prefix = '/image/banners/'
+    elif ext in ['.mp4', '.webm', '.ogg']:
         upload_dir = os.path.join('image', 'banners')
         url_prefix = '/image/banners/'
     else:

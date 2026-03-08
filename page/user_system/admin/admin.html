@@ -181,6 +181,11 @@
       </div>
     </div>
 
+    <div class="card" style="background:#fff3cd;border-left:4px solid #ffc107;">
+      <h2 style="color:#856404;"><i class="fas fa-bell"></i> 系统消息 <span id="messageCount" style="font-size:0.9rem;margin-left:1rem;"></span></h2>
+      <div id="systemMessages" style="max-height:200px;overflow-y:auto;"></div>
+    </div>
+
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:2rem;">
       <div class="card">
         <h2><i class="fas fa-th-large"></i> 管理功能</h2>
@@ -204,6 +209,11 @@
             <i class="fas fa-sitemap"></i>
             <h3>社团管理</h3>
             <p>管理社团信息与成员</p>
+          </div>
+          <div class="menu-item" onclick="location.href='club_recommend.html'">
+            <i class="fas fa-star"></i>
+            <h3>社团推荐</h3>
+            <p>配置主页推荐社团</p>
           </div>
           <div class="menu-item" onclick="location.href='activity_manage.html'">
             <i class="fas fa-calendar-alt"></i>
@@ -247,61 +257,90 @@
     window.addEventListener('load', () => {
       loadAdminStats();
       renderMiniCalendar();
-      setInterval(loadAdminStats, 30000); // 每30秒刷新
+      loadSystemMessages();
+      setInterval(loadAdminStats, 30000);
+      setInterval(loadSystemMessages, 60000);
     });
+
+    async function loadSystemMessages() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/admin/messages', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        if (data.success) {
+          const messages = data.messages || [];
+          const unreadCount = messages.filter(m => !m.read).length;
+          document.getElementById('messageCount').textContent = unreadCount > 0 ? `(未读: ${unreadCount})` : '';
+          
+          const msgDiv = document.getElementById('systemMessages');
+          if (messages.length === 0) {
+            msgDiv.innerHTML = '<p style="color:#856404;padding:1rem;">暂无系统消息</p>';
+          } else {
+            msgDiv.innerHTML = messages.slice(0, 5).map(msg => `
+              <div style="padding:0.8rem;margin-bottom:0.5rem;background:white;border-radius:8px;border-left:3px solid ${msg.read ? '#ddd' : '#ffc107'};">
+                <div style="display:flex;justify-content:space-between;">
+                  <strong style="color:#333;">${msg.title}</strong>
+                  <span style="font-size:0.85rem;color:#999;">${new Date(msg.created_at).toLocaleString()}</span>
+                </div>
+                <p style="color:#666;margin:0.5rem 0 0;font-size:0.9rem;">${msg.content}</p>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.error('加载消息失败:', err);
+      }
+    }
 
     function loadAdminStats() {
       fetch('/api/admin/stats', {
-        headers: {
-          'Authorization': localStorage.getItem('authToken')
-        }
+        headers: { 'Authorization': localStorage.getItem('authToken') }
       })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
           const stats = data.stats;
-          document.querySelectorAll('.stat-info h3')[0].textContent = stats.users.total;
-          document.querySelectorAll('.stat-info h3')[1].textContent = stats.visits.unique;
-          document.querySelectorAll('.stat-info h3')[2].textContent = stats.visits.today;
-          document.querySelectorAll('.stat-info h3')[3].textContent = stats.sessions.active;
+          const statValues = document.querySelectorAll('.stat-info h3');
+          const statLabels = document.querySelectorAll('.stat-info p');
           
-          // 更新描述
-          document.querySelectorAll('.stat-info p')[0].textContent = `用户总数 (活跃: ${stats.users.active})`;
-          document.querySelectorAll('.stat-info p')[1].textContent = `独立访客 (总访问: ${stats.visits.total})`;
-          document.querySelectorAll('.stat-info p')[2].textContent = '今日访问量';
-          document.querySelectorAll('.stat-info p')[3].textContent = '在线会话';
+          statValues[0].textContent = stats.users.total;
+          statValues[1].textContent = stats.visits.unique;
+          statValues[2].textContent = stats.visits.today;
+          statValues[3].textContent = stats.sessions.active;
           
-          // 显示系统信息
-          showSystemInfo(stats.system);
+          statLabels[0].textContent = `用户总数 (活跃: ${stats.users.active})`;
+          statLabels[1].textContent = `独立访客 (总访问: ${stats.visits.total})`;
+          statLabels[2].textContent = '今日访问量';
+          statLabels[3].textContent = '在线会话';
+          
+          updateSystemInfo(stats);
         }
       })
       .catch(err => console.error('加载统计数据失败:', err));
     }
 
-    function showSystemInfo(system) {
-      const info = `
+    function updateSystemInfo(stats) {
+      const calendar = document.getElementById('miniCalendar');
+      if (!calendar) return;
+      
+      let infoDiv = document.getElementById('systemInfo');
+      if (!infoDiv) {
+        infoDiv = document.createElement('div');
+        infoDiv.id = 'systemInfo';
+        calendar.parentElement.appendChild(infoDiv);
+      }
+      
+      infoDiv.innerHTML = `
         <div style="padding:1rem;background:#f8f9fa;border-radius:12px;margin-top:1rem;">
-          <h3 style="margin-bottom:1rem;color:#1e1e2f;"><i class="fas fa-server"></i> 服务器信息</h3>
+          <h3 style="margin-bottom:1rem;color:#1e1e2f;"><i class="fas fa-database"></i> 系统信息</h3>
           <div style="display:grid;gap:0.5rem;font-size:0.9rem;">
-            <div><strong>CPU使用率:</strong> ${system.cpu_percent}%</div>
-            <div><strong>内存使用率:</strong> ${system.memory_percent}%</div>
-            <div><strong>磁盘使用率:</strong> ${system.disk_percent}%</div>
-            <div><strong>数据库大小:</strong> ${system.db_size} MB</div>
-            <div><strong>系统平台:</strong> ${system.platform}</div>
-            <div><strong>Python版本:</strong> ${system.python_version}</div>
+            <div><strong>数据库大小:</strong> ${stats.system.db_size} MB</div>
+            <div><strong>新闻数量:</strong> ${stats.news ? stats.news.total : 0} 篇</div>
+            <div><strong>活跃用户:</strong> ${stats.users.active} / ${stats.users.total}</div>
           </div>
         </div>
       `;
-      
-      const calendar = document.getElementById('miniCalendar');
-      if (calendar && !document.getElementById('systemInfo')) {
-        const div = document.createElement('div');
-        div.id = 'systemInfo';
-        div.innerHTML = info;
-        calendar.parentElement.appendChild(div);
-      } else if (document.getElementById('systemInfo')) {
-        document.getElementById('systemInfo').innerHTML = info;
-      }
     }
 
     function renderMiniCalendar() {

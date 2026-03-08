@@ -6,16 +6,8 @@
   <title>用户管理 - 社团管理系统</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    body {
-      background: #f0f2f5;
-      min-height: 100vh;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f0f2f5; min-height: 100vh; }
     .header {
       background: white;
       padding: 1rem 2rem;
@@ -24,13 +16,7 @@
       justify-content: space-between;
       align-items: center;
     }
-    .header h1 {
-      font-size: 1.5rem;
-      color: #1e1e2f;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .header h1 { font-size: 1.5rem; color: #1e1e2f; display: flex; align-items: center; gap: 10px; }
     .back-btn {
       padding: 10px 20px;
       background: #1e1e2f;
@@ -38,32 +24,19 @@
       border: none;
       border-radius: 20px;
       cursor: pointer;
-      font-size: 0.9rem;
-      transition: 0.2s;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 8px;
     }
-    .back-btn:hover {
-      background: #2a2a3f;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 0 2rem;
-    }
-    .card {
-      background: white;
-      border-radius: 24px;
-      padding: 2rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.02);
-    }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 2rem; }
+    .card { background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 8px 20px rgba(0,0,0,0.02); }
     .toolbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
+      gap: 1rem;
     }
     .search-box {
       display: flex;
@@ -92,27 +65,25 @@
       align-items: center;
       gap: 8px;
     }
-    .btn-primary {
-      background: #1e1e2f;
-      color: white;
-    }
-    .btn-primary:hover {
-      background: #2a2a3f;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    th {
-      background: #f8f9fa;
+    .btn-primary { background: #1e1e2f; color: white; }
+    .btn-primary:hover { background: #2a2a3f; }
+    .btn-success { background: #4caf50; color: white; }
+    .btn-success:hover { background: #45a049; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f0f0f0; }
+    th { background: #f8f9fa; font-weight: 600; color: #1e1e2f; }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
       font-weight: 600;
-      color: #1e1e2f;
     }
+    .badge-admin { background: #e3f2fd; color: #1976d2; }
+    .badge-teacher { background: #f3e5f5; color: #7b1fa2; }
+    .badge-student { background: #e8f5e9; color: #388e3c; }
+    .badge-active { background: #e8f5e9; color: #388e3c; }
+    .badge-pending { background: #fff3e0; color: #f57c00; }
+    .badge-inactive { background: #ffebee; color: #c62828; }
     .action-btn {
       padding: 6px 12px;
       border: none;
@@ -122,20 +93,8 @@
       margin-right: 8px;
       transition: 0.2s;
     }
-    .btn-edit {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-    .btn-delete {
-      background: #ffebee;
-      color: #c62828;
-    }
-    .btn-edit:hover {
-      background: #bbdefb;
-    }
-    .btn-delete:hover {
-      background: #ffcdd2;
-    }
+    .btn-edit { background: #e3f2fd; color: #1976d2; }
+    .btn-delete { background: #ffebee; color: #c62828; }
     .modal {
       display: none;
       position: fixed;
@@ -148,46 +107,48 @@
       align-items: center;
       justify-content: center;
     }
-    .modal.active {
-      display: flex;
-    }
+    .modal.active { display: flex; }
     .modal-content {
       background: white;
       border-radius: 24px;
       padding: 2rem;
       width: 90%;
       max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
-    .modal-content h2 {
-      margin-bottom: 1.5rem;
-      color: #1e1e2f;
-    }
-    .form-group {
-      margin-bottom: 1rem;
-    }
+    .modal-content h2 { margin-bottom: 1.5rem; color: #1e1e2f; }
+    .form-group { margin-bottom: 1rem; }
     .form-group label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
       color: #2d2d3a;
     }
-    .form-group input {
+    .form-group input, .form-group select {
       width: 100%;
       padding: 10px 16px;
       border: 1.5px solid #dde0e8;
       border-radius: 12px;
       outline: none;
     }
-    .form-group input:focus {
-      border-color: #4a4a6a;
-    }
+    .form-group input:focus, .form-group select:focus { border-color: #4a4a6a; }
     .modal-actions {
       display: flex;
       gap: 1rem;
       margin-top: 1.5rem;
     }
-    .modal-actions .btn {
-      flex: 1;
+    .modal-actions .btn { flex: 1; }
+    .password-display {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 1.1rem;
+      text-align: center;
+      color: #c62828;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -206,9 +167,14 @@
           <i class="fas fa-search"></i>
           <input type="text" id="searchInput" placeholder="搜索用户...">
         </div>
-        <button class="btn btn-primary" onclick="openAddModal()">
-          <i class="fas fa-plus"></i> 添加用户
-        </button>
+        <div style="display:flex;gap:1rem;">
+          <button class="btn btn-success" onclick="openTeacherModal()">
+            <i class="fas fa-user-plus"></i> 创建教师账户
+          </button>
+          <button class="btn btn-primary" onclick="openEditModal()">
+            <i class="fas fa-edit"></i> 编辑用户
+          </button>
+        </div>
       </div>
 
       <table>
@@ -216,60 +182,127 @@
           <tr>
             <th>ID</th>
             <th>用户名</th>
+            <th>姓名</th>
             <th>邮箱</th>
             <th>角色</th>
+            <th>状态</th>
             <th>创建时间</th>
             <th>操作</th>
           </tr>
         </thead>
-        <tbody id="userTable">
-        </tbody>
+        <tbody id="userTable"></tbody>
       </table>
     </div>
   </div>
 
-  <div class="modal" id="userModal">
+  <!-- 编辑用户模态框 -->
+  <div class="modal" id="editModal">
     <div class="modal-content">
-      <h2 id="modalTitle">添加用户</h2>
-      <form id="userForm">
-        <input type="hidden" id="userId">
+      <h2 id="editModalTitle">编辑用户</h2>
+      <form id="editForm">
+        <input type="hidden" id="editUserId">
         <div class="form-group">
           <label>用户名</label>
-          <input type="text" id="username" required>
+          <input type="text" id="editUsername" required>
+        </div>
+        <div class="form-group">
+          <label>姓名</label>
+          <input type="text" id="editName" required>
         </div>
         <div class="form-group">
           <label>邮箱</label>
-          <input type="email" id="email" required>
+          <input type="email" id="editEmail" required>
+        </div>
+        <div class="form-group">
+          <label>电话</label>
+          <input type="tel" id="editPhone">
         </div>
         <div class="form-group">
           <label>角色</label>
-          <input type="text" id="role" value="用户" required>
+          <select id="editRole">
+            <option value="student">学生</option>
+            <option value="teacher">教师</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select id="editStatus">
+            <option value="active">正常</option>
+            <option value="pending">待完善</option>
+            <option value="inactive">禁用</option>
+          </select>
         </div>
         <div class="modal-actions">
-          <button type="button" class="btn" onclick="closeModal()">取消</button>
+          <button type="button" class="btn" onclick="closeEditModal()">取消</button>
           <button type="submit" class="btn btn-primary">保存</button>
         </div>
       </form>
     </div>
   </div>
 
-  <script src="admin_data.js"></script>
+  <!-- 创建教师模态框 -->
+  <div class="modal" id="teacherModal">
+    <div class="modal-content">
+      <h2>创建教师账户</h2>
+      <form id="teacherForm">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="teacherUsername" required>
+        </div>
+        <div class="form-group">
+          <label>姓名</label>
+          <input type="text" id="teacherName" required>
+        </div>
+        <div class="form-group">
+          <label>邮箱</label>
+          <input type="email" id="teacherEmail" required>
+        </div>
+        <div id="passwordDisplay" style="display:none;">
+          <p style="margin-bottom:0.5rem;color:#666;">初始密码（请妥善保管）：</p>
+          <div class="password-display" id="generatedPassword"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn" onclick="closeTeacherModal()">取消</button>
+          <button type="submit" class="btn btn-success">创建</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/page/auth-check.js"></script>
   <script>
-    const STORAGE_KEY = 'systemUsers';
+    let users = [];
 
-    function loadUsers() {
-      const users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    async function loadUsers() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/users', {
+          headers: { 'Authorization': token }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          users = data.users;
+          renderUsers();
+        }
+      } catch (err) {
+        console.error('加载用户失败:', err);
+        alert('加载用户失败');
+      }
+    }
+
+    function renderUsers() {
       const tbody = document.getElementById('userTable');
-      tbody.innerHTML = '';
-
-      users.forEach(user => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+      tbody.innerHTML = users.map(user => `
+        <tr>
           <td>${user.id}</td>
           <td>${user.username}</td>
+          <td>${user.name}</td>
           <td>${user.email}</td>
-          <td>${user.role}</td>
-          <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+          <td><span class="badge badge-${user.role}">${getRoleText(user.role)}</span></td>
+          <td><span class="badge badge-${user.status}">${getStatusText(user.status)}</span></td>
+          <td>${new Date(user.created_at).toLocaleDateString()}</td>
           <td>
             <button class="action-btn btn-edit" onclick="editUser(${user.id})">
               <i class="fas fa-edit"></i> 编辑
@@ -278,67 +311,156 @@
               <i class="fas fa-trash"></i> 删除
             </button>
           </td>
-        `;
-        tbody.appendChild(tr);
-      });
+        </tr>
+      `).join('');
     }
 
-    function openAddModal() {
-      document.getElementById('modalTitle').textContent = '添加用户';
-      document.getElementById('userForm').reset();
-      document.getElementById('userId').value = '';
-      document.getElementById('userModal').classList.add('active');
+    function getRoleText(role) {
+      const map = { admin: '管理员', teacher: '教师', student: '学生' };
+      return map[role] || role;
     }
 
-    function closeModal() {
-      document.getElementById('userModal').classList.remove('active');
+    function getStatusText(status) {
+      const map = { active: '正常', pending: '待完善', inactive: '禁用' };
+      return map[status] || status;
+    }
+
+    function openEditModal() {
+      document.getElementById('editModalTitle').textContent = '编辑用户';
+      document.getElementById('editForm').reset();
+      document.getElementById('editUserId').value = '';
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('active');
     }
 
     function editUser(id) {
-      const users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       const user = users.find(u => u.id === id);
       if (user) {
-        document.getElementById('modalTitle').textContent = '编辑用户';
-        document.getElementById('userId').value = user.id;
-        document.getElementById('username').value = user.username;
-        document.getElementById('email').value = user.email;
-        document.getElementById('role').value = user.role;
-        document.getElementById('userModal').classList.add('active');
+        document.getElementById('editModalTitle').textContent = '编辑用户';
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUsername').value = user.username;
+        document.getElementById('editName').value = user.name;
+        document.getElementById('editEmail').value = user.email;
+        document.getElementById('editPhone').value = user.phone || '';
+        document.getElementById('editRole').value = user.role;
+        document.getElementById('editStatus').value = user.status;
+        document.getElementById('editModal').classList.add('active');
       }
     }
 
-    function deleteUser(id) {
-      if (confirm('确定要删除该用户吗？')) {
-        let users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        users = users.filter(u => u.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-        loadUsers();
+    async function deleteUser(id) {
+      if (!confirm('确定要删除该用户吗？此操作不可恢复！')) return;
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`/api/user/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': token }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('删除成功');
+          loadUsers();
+        } else {
+          alert('删除失败');
+        }
+      } catch (err) {
+        console.error('删除失败:', err);
+        alert('删除失败');
       }
     }
 
-    document.getElementById('userForm').addEventListener('submit', (e) => {
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const users = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      const userId = document.getElementById('userId').value;
+      const userId = document.getElementById('editUserId').value;
+      
+      if (!userId) {
+        alert('请选择要编辑的用户');
+        return;
+      }
       
       const userData = {
-        id: userId ? parseInt(userId) : Date.now(),
-        username: document.getElementById('username').value,
-        email: document.getElementById('email').value,
-        role: document.getElementById('role').value,
-        createdAt: userId ? users.find(u => u.id === parseInt(userId)).createdAt : new Date().toISOString()
+        username: document.getElementById('editUsername').value,
+        name: document.getElementById('editName').value,
+        email: document.getElementById('editEmail').value,
+        phone: document.getElementById('editPhone').value,
+        role: document.getElementById('editRole').value,
+        status: document.getElementById('editStatus').value
       };
 
-      if (userId) {
-        const index = users.findIndex(u => u.id === parseInt(userId));
-        users[index] = userData;
-      } else {
-        users.push(userData);
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`/api/user/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(userData)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('保存成功');
+          closeEditModal();
+          loadUsers();
+        } else {
+          alert('保存失败');
+        }
+      } catch (err) {
+        console.error('保存失败:', err);
+        alert('保存失败');
       }
+    });
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-      closeModal();
-      loadUsers();
+    function openTeacherModal() {
+      document.getElementById('teacherForm').reset();
+      document.getElementById('passwordDisplay').style.display = 'none';
+      document.getElementById('teacherModal').classList.add('active');
+    }
+
+    function closeTeacherModal() {
+      document.getElementById('teacherModal').classList.remove('active');
+    }
+
+    document.getElementById('teacherForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const teacherData = {
+        username: document.getElementById('teacherUsername').value,
+        name: document.getElementById('teacherName').value,
+        email: document.getElementById('teacherEmail').value
+      };
+
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/user/create-teacher', {
+          method: 'POST',
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(teacherData)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          document.getElementById('generatedPassword').textContent = data.password;
+          document.getElementById('passwordDisplay').style.display = 'block';
+          document.querySelector('#teacherForm button[type="submit"]').style.display = 'none';
+          alert(`教师账户创建成功！\n用户名：${teacherData.username}\n初始密码：${data.password}\n\n请将此信息告知教师，首次登录需完善个人信息。`);
+          loadUsers();
+        } else {
+          alert(data.message || '创建失败');
+        }
+      } catch (err) {
+        console.error('创建失败:', err);
+        alert('创建失败');
+      }
     });
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -350,7 +472,7 @@
       });
     });
 
-    loadUsers();
+    window.addEventListener('load', loadUsers);
   </script>
 </body>
 </html>

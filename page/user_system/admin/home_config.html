@@ -50,7 +50,7 @@
       margin-bottom: 8px;
       color: #333;
     }
-    .form-group input, .form-group textarea {
+    .form-group input, .form-group textarea, .form-group select {
       width: 100%;
       padding: 12px;
       border: 1.5px solid #e0e0e0;
@@ -58,11 +58,10 @@
       font-size: 0.95rem;
       transition: 0.2s;
     }
-    .form-group input:focus, .form-group textarea:focus {
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
       outline: none;
       border-color: #5e2a84;
     }
-    .form-group textarea { min-height: 100px; resize: vertical; }
     .banner-item {
       background: #f8f9fa;
       padding: 15px;
@@ -81,32 +80,6 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .banner-item select {
-      width: 100%;
-      padding: 12px;
-      border: 1.5px solid #e0e0e0;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      transition: 0.2s;
-    }
-    .news-item {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      position: relative;
-    }
-    .news-item .remove-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
     .btn {
       padding: 12px 24px;
       border: none;
@@ -115,6 +88,9 @@
       font-weight: 600;
       transition: 0.2s;
       margin-right: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     .btn-primary { background: #5e2a84; color: white; }
     .btn-primary:hover { background: #7b3fa0; }
@@ -132,6 +108,12 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       display: none;
       z-index: 1000;
+    }
+    .preview-img {
+      max-width: 200px;
+      margin-top: 10px;
+      border-radius: 8px;
+      display: block;
     }
   </style>
 </head>
@@ -160,17 +142,13 @@
       </button>
     </div>
 
-    <div class="card">
-      <h2><i class="fas fa-newspaper"></i> 新闻资讯</h2>
-      <div id="newsList"></div>
-      <button class="btn btn-secondary" onclick="addNews()">
-        <i class="fas fa-plus"></i> 添加新闻
-      </button>
-    </div>
-
     <div class="action-bar">
-      <button class="btn btn-secondary" onclick="previewHome()">预览</button>
-      <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+      <button class="btn btn-secondary" onclick="previewHome()">
+        <i class="fas fa-eye"></i> 预览
+      </button>
+      <button class="btn btn-primary" onclick="saveConfig()">
+        <i class="fas fa-save"></i> 保存配置
+      </button>
     </div>
   </div>
 
@@ -181,54 +159,48 @@
   <script src="/page/auth-check.js"></script>
   <script>
     let banners = [];
-    let news = [];
 
     function loadConfig() {
-      const config = JSON.parse(localStorage.getItem('homePageConfig') || '{}');
-      
-      document.getElementById('systemName').value = config.systemName || '社团管理系统';
-      
       fetch('/api/banners')
         .then(res => res.json())
         .then(data => {
-          if (data.success && data.banners.length > 0) {
+          if (data.success && data.banners) {
             banners = data.banners;
-          } else {
-            banners = config.banners || [
-              { type: 'image', title: '欢迎来到社团管理系统', desc: '连接每一个热爱，创造无限可能', src: '/image/main/banner1.jpg' },
-              { type: 'video', src: '/image/main/banner.mp4', poster: '/image/main/banner2.jpg' },
-              { type: 'image', title: '专业的管理平台', desc: '高效管理，轻松组织', src: '/image/main/banner3.jpg' }
-            ];
           }
           renderBanners();
         })
         .catch(err => {
           console.error('加载轮播图失败:', err);
-          banners = config.banners || [];
           renderBanners();
         });
       
-      news = config.news || [
-        { id: 1, title: '2025年春季社团招新活动圆满结束', desc: '本次招新活动吸引了超过500名新生参与，各社团展现了独特魅力...', date: '2025-01-15', views: 0 },
-        { id: 2, title: '校园文化艺术节精彩纷呈', desc: '为期一周的文化艺术节展示了学生们的才华与创意，获得广泛好评...', date: '2025-01-10', views: 0 },
-        { id: 3, title: '社团管理系统全新升级', desc: '新版本增加了更多实用功能，提升用户体验，欢迎大家使用...', date: '2025-01-05', views: 0 }
-      ];
-      
-      renderNews();
+      const config = JSON.parse(localStorage.getItem('homePageConfig') || '{}');
+      document.getElementById('systemName').value = config.systemName || '社团管理系统';
     }
 
     function renderBanners() {
       const list = document.getElementById('bannerList');
-      list.innerHTML = banners.map((b, i) => `
+      if (banners.length === 0) {
+        list.innerHTML = '<p style="color:#999;text-align:center;padding:2rem">暂无轮播图，点击下方按钮添加</p>';
+        return;
+      }
+      list.innerHTML = banners.map((b, i) => {
+        const title = (b.title || '').replace(/"/g, '&quot;');
+        const desc = (b.desc || '').replace(/"/g, '&quot;');
+        const previewHtml = b.type === 'video' 
+          ? (b.poster ? `<img src="${b.poster}" class="preview-img">` : '')
+          : (b.src ? `<img src="${b.src}" class="preview-img">` : '');
+        
+        return `
         <div class="banner-item">
           <button class="remove-btn" onclick="removeBanner(${i})"><i class="fas fa-times"></i></button>
           <div class="form-group">
             <label>标题</label>
-            <input type="text" value="${b.title || ''}" onchange="banners[${i}].title=this.value">
+            <input type="text" value="${title}" onchange="banners[${i}].title=this.value">
           </div>
           <div class="form-group">
             <label>描述</label>
-            <input type="text" value="${b.desc || ''}" onchange="banners[${i}].desc=this.value">
+            <input type="text" value="${desc}" onchange="banners[${i}].desc=this.value">
           </div>
           <div class="form-group">
             <label>类型</label>
@@ -238,12 +210,13 @@
             </select>
           </div>
           <div class="form-group">
-            <label>${b.type === 'video' ? '视频文件' : '图片文件'}</label>
+            <label>${b.type === 'video' ? '视频文件' : '图片文件'} ${b.src ? '(当前: ' + b.src.split('/').pop() + ')' : ''}</label>
             <input type="file" accept="${b.type === 'video' ? 'video/*' : 'image/*'}" onchange="uploadBanner(this, ${i})">
-            ${b.src ? `<img src="${b.src}" style="max-width:200px;margin-top:10px;border-radius:8px;" onerror="this.style.display='none'">` : ''}
+            ${previewHtml}
           </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     async function uploadBanner(input, index) {
@@ -282,59 +255,22 @@
     }
 
     function removeBanner(index) {
-      banners.splice(index, 1);
-      renderBanners();
-    }
-
-    function renderNews() {
-      const list = document.getElementById('newsList');
-      list.innerHTML = news.map((n, i) => `
-        <div class="news-item">
-          <button class="remove-btn" onclick="removeNews(${i})"><i class="fas fa-times"></i></button>
-          <div class="form-group">
-            <label>ID</label>
-            <input type="number" value="${n.id || i+1}" onchange="news[${i}].id=parseInt(this.value)">
-          </div>
-          <div class="form-group">
-            <label>标题</label>
-            <input type="text" value="${n.title}" onchange="news[${i}].title=this.value">
-          </div>
-          <div class="form-group">
-            <label>描述</label>
-            <textarea onchange="news[${i}].desc=this.value">${n.desc}</textarea>
-          </div>
-          <div class="form-group">
-            <label>日期</label>
-            <input type="date" value="${n.date}" onchange="news[${i}].date=this.value">
-          </div>
-          <div class="form-group">
-            <label>浏览量（自动统计）</label>
-            <input type="number" value="${n.views}" disabled>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function addNews() {
-      const newId = news.length > 0 ? Math.max(...news.map(n => n.id || 0)) + 1 : 1;
-      news.push({ id: newId, title: '新闻标题', desc: '新闻描述', date: new Date().toISOString().split('T')[0], views: 0 });
-      renderNews();
-    }
-
-    function removeNews(index) {
-      news.splice(index, 1);
-      renderNews();
+      if (confirm('确定要删除这个轮播图吗？')) {
+        banners.splice(index, 1);
+        renderBanners();
+      }
     }
 
     function saveConfig() {
       const config = {
         systemName: document.getElementById('systemName').value,
-        banners,
-        news
+        banners
       };
       
+      // 保存到localStorage作为备份
       localStorage.setItem('homePageConfig', JSON.stringify(config));
       
+      // 保存到服务器
       fetch('/api/banners', {
         method: 'POST',
         headers: {
@@ -342,13 +278,21 @@
           'Authorization': localStorage.getItem('authToken')
         },
         body: JSON.stringify({ banners })
-      }).then(res => res.json()).then(data => {
+      })
+      .then(res => res.json())
+      .then(data => {
         if (data.success) {
           const msg = document.getElementById('successMsg');
           msg.style.display = 'block';
           setTimeout(() => { msg.style.display = 'none'; }, 2000);
+        } else {
+          alert('保存失败：' + (data.message || '未知错误'));
         }
-      }).catch(err => console.error('保存失败:', err));
+      })
+      .catch(err => {
+        console.error('保存失败:', err);
+        alert('保存失败：' + err.message);
+      });
     }
 
     function previewHome() {

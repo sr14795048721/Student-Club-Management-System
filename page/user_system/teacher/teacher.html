@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教师中心 - 社团管理系统</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f5f7fa; }
+    .header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 12px; }
+    .user-info { display: flex; align-items: center; gap: 20px; }
+    .user-avatar { width: 45px; height: 45px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+    .user-avatar:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+    .user-info span { cursor: pointer; transition: 0.2s; }
+    .user-info span:hover { opacity: 0.8; }
+    .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 20px; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+    .logout-btn:hover { background: rgba(255,255,255,0.3); }
+    .container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+    .nav-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .nav-tab { background: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .nav-tab.active { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .card { background: white; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .card h2 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #2d3748; display: flex; align-items: center; gap: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+    .item-card { background: #f8f9fa; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #f093fb; transition: 0.2s; }
+    .item-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .item-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; color: #2d3748; }
+    .item-card p { color: #718096; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; }
+    .badge-primary { background: #e6f2ff; color: #0066cc; }
+    .badge-success { background: #d4edda; color: #155724; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: #f093fb; color: white; }
+    .btn-primary:hover { background: #e082ea; }
+    .btn-secondary { background: #e2e8f0; color: #4a5568; }
+    .btn-secondary:hover { background: #cbd5e0; }
+    .btn-success { background: #48bb78; color: white; }
+    .btn-success:hover { background: #38a169; }
+    .empty-state { text-align: center; padding: 3rem; color: #a0aec0; }
+    .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 16px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #2d3748; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #f093fb; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <h1><i class="fas fa-chalkboard-teacher"></i> 教师中心</h1>
+      <div class="user-info">
+        <div class="user-avatar" onclick="location.href='profile.html'"><i class="fas fa-user-tie"></i></div>
+        <span id="userName" onclick="location.href='profile.html'">加载中...</span>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 退出</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('clubs')"><i class="fas fa-users"></i> 指导社团</button>
+      <button class="nav-tab" onclick="switchTab('activities')"><i class="fas fa-calendar"></i> 活动管理</button>
+      <button class="nav-tab" onclick="switchTab('news')"><i class="fas fa-newspaper"></i> 新闻发布</button>
+      <button class="nav-tab" onclick="switchTab('recommend')"><i class="fas fa-star"></i> 社团推荐</button>
+      <button class="nav-tab" onclick="switchTab('apply')"><i class="fas fa-plus-circle"></i> 申请创建社团</button>
+    </div>
+
+    <div id="clubs-tab" class="tab-content active">
+      <div class="card">
+        <h2><i class="fas fa-users"></i> 我指导的社团</h2>
+        <div id="myClubsList" class="grid"></div>
+      </div>
+    </div>
+
+    <div id="activities-tab" class="tab-content">
+      <div class="card">
+        <h2><i class="fas fa-calendar"></i> 活动管理</h2>
+        <button class="btn btn-success" style="margin-bottom:1.5rem;" onclick="openModal('activityModal')"><i class="fas fa-plus"></i> 创建活动</button>
+        <div id="activitiesList" class="grid"></div>
+      </div>
+    </div>
+
+    <div id="news-tab" class="tab-content">
+      <div class="card">
+        <h2><i class="fas fa-newspaper"></i> 新闻管理</h2>
+        <button class="btn btn-success" style="margin-bottom:1.5rem;" onclick="openModal('newsModal')"><i class="fas fa-plus"></i> 发布新闻</button>
+        <div id="newsList" class="grid"></div>
+      </div>
+    </div>
+
+    <div id="recommend-tab" class="tab-content">
+      <div class="card">
+        <h2><i class="fas fa-star"></i> 推荐社团</h2>
+        <p style="margin-bottom:1.5rem;color:#666;">查看主页推荐的社团列表。管理员可配置推荐内容。</p>
+        <div id="recommendedClubsList" class="grid"></div>
+      </div>
+    </div>
+
+    <div id="apply-tab" class="tab-content">
+      <div class="card">
+        <h2><i class="fas fa-plus-circle"></i> 申请创建社团</h2>
+        <form onsubmit="submitClubApplication(event)">
+          <div class="form-group">
+            <label>社团名称</label>
+            <input type="text" id="clubName" required>
+          </div>
+          <div class="form-group">
+            <label>社团简介</label>
+            <textarea id="clubDesc" rows="4" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>社团类型</label>
+            <select id="clubType">
+              <option>文艺</option>
+              <option>体育</option>
+              <option>学术</option>
+              <option>科技</option>
+              <option>公益</option>
+              <option>其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>申请理由</label>
+            <textarea id="clubReason" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> 提交申请</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="profile-tab" class="tab-content">
+      <div class="card">
+        <h2><i class="fas fa-user-circle"></i> 个人中心</h2>
+        <p style="margin-bottom:1rem;">点击下方按钮进入个人中心页面编辑信息</p>
+        <button class="btn btn-primary" onclick="location.href='profile.html'"><i class="fas fa-edit"></i> 编辑个人信息</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="activityModal" class="modal">
+    <div class="modal-content">
+      <h2>创建活动</h2>
+      <form onsubmit="createActivity(event)">
+        <div class="form-group">
+          <label>所属社团</label>
+          <select id="activityClub" required></select>
+        </div>
+        <div class="form-group">
+          <label>活动名称</label>
+          <input type="text" id="activityName" required>
+        </div>
+        <div class="form-group">
+          <label>活动时间</label>
+          <input type="datetime-local" id="activityDate" required>
+        </div>
+        <div class="form-group">
+          <label>活动地点</label>
+          <input type="text" id="activityLocation" required>
+        </div>
+        <div class="form-group">
+          <label>活动描述</label>
+          <textarea id="activityDesc" rows="4" required></textarea>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('activityModal')">取消</button>
+          <button type="submit" class="btn btn-primary">创建</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="newsModal" class="modal">
+    <div class="modal-content">
+      <h2>发布新闻</h2>
+      <form onsubmit="publishNews(event)">
+        <div class="form-group">
+          <label>新闻标题</label>
+          <input type="text" id="newsTitle" required>
+        </div>
+        <div class="form-group">
+          <label>新闻内容</label>
+          <textarea id="newsContent" rows="8" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>发布日期</label>
+          <input type="date" id="newsDate" required>
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('newsModal')">取消</button>
+          <button type="submit" class="btn btn-primary">发布</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/page/auth-check.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function init() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/check-session', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        if (!data.success || data.user.role !== 'teacher') {
+          window.location.href = '/login';
+          return;
+        }
+        
+        currentUser = data.user;
+        document.getElementById('userName').textContent = currentUser.name;
+        
+        loadMyClubs();
+        loadActivities();
+        loadNews();
+        loadRecommendedClubs();
+      } catch (err) {
+        console.error(err);
+        window.location.href = '/login';
+      }
+    }
+
+    async function loadMyClubs() {
+      const list = document.getElementById('myClubsList');
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`/api/user/${currentUser.id}/data?type=guided_clubs`, { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        const clubs = data.data.clubs || [];
+        if (clubs.length === 0) {
+          list.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><p>您还没有指导任何社团</p></div>';
+          return;
+        }
+        
+        list.innerHTML = clubs.map(club => `
+          <div class="item-card">
+            <h3>${club.name}</h3>
+            <p>${club.description || '暂无描述'}</p>
+            <p><i class="fas fa-user"></i> 成员: ${club.memberCount || 0}人</p>
+            <div style="margin-top: 1rem;">
+              <button class="btn btn-primary" onclick="manageClub('${club.id}')">管理社团</button>
+              <button class="btn btn-secondary" onclick="setPositions('${club.id}')">设置职位</button>
+            </div>
+          </div>
+        `).join('');
+        
+        const select = document.getElementById('activityClub');
+        select.innerHTML = clubs.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+      }
+    }
+
+    async function loadActivities() {
+      const list = document.getElementById('activitiesList');
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`/api/user/${currentUser.id}/activities`, { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        const activities = data.activities || [];
+        if (activities.length === 0) {
+          list.innerHTML = '<div class="empty-state"><i class="fas fa-calendar"></i><p>暂无活动</p></div>';
+          return;
+        }
+        
+        list.innerHTML = activities.map(act => `
+          <div class="item-card">
+            <h3>${act.name}</h3>
+            <p><i class="fas fa-clock"></i> ${act.date || '待定'}</p>
+            <p><i class="fas fa-map-marker-alt"></i> ${act.location || '待定'}</p>
+            <p>${act.description || ''}</p>
+            <span class="badge badge-success">已发布</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+      }
+    }
+
+    async function loadNews() {
+      const list = document.getElementById('newsList');
+      try {
+        const res = await fetch('/api/news');
+        const data = await res.json();
+        
+        const myNews = data.news.filter(n => n.author_id === currentUser.id);
+        if (myNews.length === 0) {
+          list.innerHTML = '<div class="empty-state"><i class="fas fa-newspaper"></i><p>您还没有发布任何新闻</p></div>';
+          return;
+        }
+        
+        list.innerHTML = myNews.map(news => `
+          <div class="item-card">
+            <h3>${news.title}</h3>
+            <p>${news.content.substring(0, 100)}...</p>
+            <p><i class="fas fa-calendar"></i> ${news.publish_date}</p>
+            <span class="badge badge-primary">浏览: ${news.views}</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+      }
+    }
+
+    async function loadRecommendedClubs() {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch('/api/clubs', { headers: { 'Authorization': token } });
+        const data = await res.json();
+        
+        const list = document.getElementById('recommendedClubsList');
+        
+        if (data.success && data.clubs && data.clubs.length > 0) {
+          const recommended = localStorage.getItem('recommendedClubs');
+          const recommendedIds = recommended ? JSON.parse(recommended) : [];
+          
+          let clubs = data.clubs;
+          if (recommendedIds.length > 0) {
+            clubs = clubs.filter(c => recommendedIds.includes(c.id));
+          } else {
+            clubs = clubs.slice(0, 4);
+          }
+          
+          list.innerHTML = clubs.map(club => `
+            <div class="item-card">
+              <h3>${club.name}</h3>
+              <p>${club.description || '暂无描述'}</p>
+              <p><i class="fas fa-user"></i> 成员: ${club.memberCount || 0}人</p>
+              <span class="badge badge-primary">推荐</span>
+            </div>
+          `).join('');
+        } else {
+          list.innerHTML = '<div class="empty-state"><i class="fas fa-star"></i><p>暂无推荐社团</p></div>';
+        }
+      } catch (err) {
+        console.error('加载失败:', err);
+      }
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tab + '-tab').classList.add('active');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    async function createActivity(e) {
+      e.preventDefault();
+      const data = {
+        clubId: document.getElementById('activityClub').value,
+        name: document.getElementById('activityName').value,
+        date: document.getElementById('activityDate').value,
+        location: document.getElementById('activityLocation').value,
+        description: document.getElementById('activityDesc').value,
+        creator: currentUser.id
+      };
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        await fetch(`/api/user/${currentUser.id}/activities`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': token },
+          body: JSON.stringify(data)
+        });
+        
+        alert('活动创建成功');
+        closeModal('activityModal');
+        loadActivities();
+      } catch (err) {
+        alert('创建失败: ' + err.message);
+      }
+    }
+
+    async function publishNews(e) {
+      e.preventDefault();
+      const data = {
+        title: document.getElementById('newsTitle').value,
+        content: document.getElementById('newsContent').value,
+        publish_date: document.getElementById('newsDate').value
+      };
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        await fetch('/api/news', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': token },
+          body: JSON.stringify(data)
+        });
+        
+        alert('新闻发布成功');
+        closeModal('newsModal');
+        loadNews();
+      } catch (err) {
+        alert('发布失败: ' + err.message);
+      }
+    }
+
+    async function submitClubApplication(e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('clubName').value,
+        description: document.getElementById('clubDesc').value,
+        type: document.getElementById('clubType').value,
+        reason: document.getElementById('clubReason').value,
+        applicant: currentUser.id
+      };
+      
+      try {
+        const token = localStorage.getItem('authToken');
+        await fetch('/api/clubs/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': token },
+          body: JSON.stringify(data)
+        });
+        
+        alert('申请已提交，请等待管理员审核');
+        e.target.reset();
+      } catch (err) {
+        alert('提交失败: ' + err.message);
+      }
+    }
+
+    function manageClub(clubId) {
+      window.location.href = `/page/user_system/teacher/club-manage.html?id=${clubId}`;
+    }
+
+    function setPositions(clubId) {
+      window.location.href = `/page/user_system/teacher/positions.html?id=${clubId}`;
+    }
+
+    function logout() {
+      localStorage.removeItem('authToken');
+      window.location.href = '/login';
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
